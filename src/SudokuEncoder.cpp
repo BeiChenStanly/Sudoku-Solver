@@ -559,7 +559,7 @@ namespace sudoku
                 double uniqueTimeMs = std::chrono::duration<double, std::milli>(uniqueEndTime - uniqueStartTime).count();
                 solution.solveTimeMs += uniqueTimeMs;
 
-                solution.isUnique = !hasSecondSolution;
+                solution.uniqueness = hasSecondSolution ? UniquenessStatus::NOT_UNIQUE : UniquenessStatus::UNIQUE;
             }
         }
         else

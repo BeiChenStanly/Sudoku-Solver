@@ -55,9 +55,18 @@ ctest -C Release --output-on-failure
 # 从字符串求解 (81字符)
 ./sudoku_solve --string "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
 
+# 求解并检查解是否唯一
+./sudoku_solve puzzle.txt --unique
+
 # 显示帮助
 ./sudoku_solve --help
 ```
+
+### 求解选项
+
+| 选项           | 说明               |
+| -------------- | ------------------ |
+| `--unique, -u` | 检查解是否唯一     |
 
 ### 命令行生成
 
@@ -98,6 +107,8 @@ ctest -C Release --output-on-failure
 | `--seed <N>`           | 随机种子（用于重现）                          | 随机   |
 | `--output <FILE>`      | 输出文件（默认输出到标准输出）                | stdout |
 | `--with-solution`      | 包含解答                                      | 否     |
+| `--fill-all`           | 笼子覆盖所有格子（用于 killer/mixed）         | 否     |
+| `--no-unique`          | 不确保唯一解（生成更快）                      | 否     |
 
 ### 输入格式
 

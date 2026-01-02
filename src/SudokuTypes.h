@@ -226,17 +226,27 @@ namespace sudoku
     };
 
     /**
+     * @brief Uniqueness status of a solution
+     */
+    enum class UniquenessStatus
+    {
+        NOT_CHECKED,   // Uniqueness was not verified
+        UNIQUE,        // Solution is verified to be unique
+        NOT_UNIQUE     // Multiple solutions exist
+    };
+
+    /**
      * @brief Represents the solution to a Sudoku puzzle
      */
     struct SudokuSolution
     {
         int grid[GRID_SIZE][GRID_SIZE];
         bool solved;
-        bool isUnique;  // True if solution is unique (when uniqueness check is performed)
+        UniquenessStatus uniqueness;  // Uniqueness status of the solution
         std::string errorMessage;
         double solveTimeMs;
 
-        SudokuSolution() : solved(false), isUnique(true), solveTimeMs(0.0)
+        SudokuSolution() : solved(false), uniqueness(UniquenessStatus::NOT_CHECKED), solveTimeMs(0.0)
         {
             for (int i = 0; i < GRID_SIZE; i++)
             {
@@ -246,6 +256,10 @@ namespace sudoku
                 }
             }
         }
+
+        // Helper methods for backward compatibility and convenience
+        bool isUnique() const { return uniqueness == UniquenessStatus::UNIQUE; }
+        bool uniquenessChecked() const { return uniqueness != UniquenessStatus::NOT_CHECKED; }
 
         int getCell(int row, int col) const
         {
