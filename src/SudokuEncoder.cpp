@@ -535,7 +535,10 @@ namespace sudoku
             if (checkUniqueness)
             {
                 // Block the current solution by adding a clause that says
-                // at least one cell must have a different value
+                // at least one cell must have a different value.
+                // This creates a single 81-literal clause, which modern SAT solvers
+                // handle efficiently. The alternative of adding auxiliary variables
+                // would increase overhead without significant benefit for this use case.
                 Minisat::vec<Minisat::Lit> blockingClause;
                 for (int row = 0; row < GRID_SIZE; row++)
                 {

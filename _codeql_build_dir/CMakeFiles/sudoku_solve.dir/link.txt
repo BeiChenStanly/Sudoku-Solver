@@ -1,0 +1,1 @@
+/home/runner/work/Sudoku-Solver/.codeql-scratch/dbs/cpp/working/autobuild/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/sudoku_solve.dir/link.d CMakeFiles/sudoku_solve.dir/src/main.cpp.o -o sudoku_solve  libsudoku_solver.a libminisat.a /usr/lib/x86_64-linux-gnu/libz.so

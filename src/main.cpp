@@ -234,9 +234,9 @@ int main(int argc, char *argv[])
         sudoku::SudokuSolver solver;
         sudoku::SudokuPuzzle puzzle;
         bool checkUniqueness = false;
+        bool puzzleLoaded = false;
 
         // Parse arguments
-        int fileArgIndex = 1;
         for (int i = 1; i < argc; i++)
         {
             std::string arg = argv[i];
@@ -246,10 +246,10 @@ int main(int argc, char *argv[])
             }
             else if (arg == "--string" || arg == "-s")
             {
-                fileArgIndex = -1; // Will handle string input
                 if (i + 1 < argc)
                 {
                     puzzle = sudoku::SudokuParser::parseFromString(argv[++i]);
+                    puzzleLoaded = true;
                 }
                 else
                 {
@@ -257,15 +257,17 @@ int main(int argc, char *argv[])
                     return 1;
                 }
             }
-            else if (arg[0] != '-')
+            else if (arg[0] != '-' && !puzzleLoaded)
             {
-                fileArgIndex = i;
+                puzzle = sudoku::SudokuParser::parseFromFile(arg);
+                puzzleLoaded = true;
             }
         }
 
-        if (fileArgIndex > 0)
+        if (!puzzleLoaded)
         {
-            puzzle = sudoku::SudokuParser::parseFromFile(argv[fileArgIndex]);
+            std::cerr << "Error: No puzzle file or string provided\n";
+            return 1;
         }
 
         printPuzzleInfo(puzzle);

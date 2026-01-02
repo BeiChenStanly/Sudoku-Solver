@@ -1,0 +1,5 @@
+if(EXISTS "/home/runner/work/Sudoku-Solver/Sudoku-Solver/_codeql_build_dir/sudoku_tests[1]_tests.cmake")
+  include("/home/runner/work/Sudoku-Solver/Sudoku-Solver/_codeql_build_dir/sudoku_tests[1]_tests.cmake")
+else()
+  add_test(sudoku_tests_NOT_BUILT sudoku_tests_NOT_BUILT)
+endif()
