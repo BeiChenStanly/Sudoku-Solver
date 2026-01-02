@@ -117,3 +117,38 @@ install(FILES
     src/SudokuGenerator.h
     DESTINATION include/sudoku
 )
+
+# WebAssembly build (only when using Emscripten)
+if(EMSCRIPTEN)
+    message(STATUS "Building for WebAssembly with Emscripten")
+    
+    # Disable tests for WASM build
+    set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    
+    # WASM module
+    add_executable(sudoku_wasm src/wasm_bindings.cpp)
+    target_link_libraries(sudoku_wasm sudoku_solver minisat)
+    
+    # Emscripten-specific flags
+    set_target_properties(sudoku_wasm PROPERTIES
+        SUFFIX ".js"
+    )
+    target_link_options(sudoku_wasm PRIVATE
+        -lembind
+        -sALLOW_MEMORY_GROWTH=1
+        -sMODULARIZE=1
+        -sEXPORT_NAME=createSudokuModule
+        -sENVIRONMENT=web,worker
+        -sSINGLE_FILE=0
+        -sWASM=1
+        -sNO_EXIT_RUNTIME=1
+        -O3
+    )
+    
+    # Install WASM files
+    install(FILES 
+        ${CMAKE_BINARY_DIR}/sudoku_wasm.js
+        ${CMAKE_BINARY_DIR}/sudoku_wasm.wasm
+        DESTINATION wasm
+    )
+endif()
