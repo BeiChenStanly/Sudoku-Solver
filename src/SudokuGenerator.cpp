@@ -92,10 +92,13 @@ namespace sudoku
             // Check if the puzzle has a unique solution
             auto testSolution = solver.solve(puzzle, true);  // Check uniqueness
             
-            int attempts = 0;
-            const int maxAttempts = 10;
+            // Maximum attempts to achieve uniqueness through constraints
+            const int kMaxConstraintAttempts = 10;
+            // Maximum given values to add (failsafe to prevent infinite loop)
+            const int kMaxGivensToAdd = 81;  // Can't add more than 81 givens
             
-            while (testSolution.solved && !testSolution.isUnique() && attempts < maxAttempts)
+            int attempts = 0;
+            while (testSolution.solved && !testSolution.isUnique() && attempts < kMaxConstraintAttempts)
             {
                 // Add more constraints to ensure uniqueness
                 if (config.type == SudokuType::INEQUALITY || config.type == SudokuType::KILLER_INEQUALITY)
@@ -113,11 +116,13 @@ namespace sudoku
                 attempts++;
             }
             
-            // If still not unique after max attempts, add more givens
-            while (testSolution.solved && !testSolution.isUnique())
+            // If still not unique after max constraint attempts, add givens one at a time
+            int givensAdded = 0;
+            while (testSolution.solved && !testSolution.isUnique() && givensAdded < kMaxGivensToAdd)
             {
                 addGivens(puzzle, solution, 1);
                 testSolution = solver.solve(puzzle, true);
+                givensAdded++;
             }
         }
 
