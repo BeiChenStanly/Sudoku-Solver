@@ -26,8 +26,9 @@ jobs:
 
       - name: Setup MiniSat
         run: |
+          # Clone MiniSat SAT solver (always needed in CI environment)
           if [ ! -d "minisat" ]; then
-            echo "MiniSat not found, cloning..."
+            echo "Cloning MiniSat..."
             git clone --depth 1 https://github.com/niklasso/minisat.git minisat || {
               echo "Failed to clone MiniSat"
               exit 1
@@ -51,7 +52,6 @@ jobs:
             echo "WebAssembly build failed"
             exit 1
           }
-          
       - name: Copy WASM files to frontend
         run: |
           mkdir -p frontend/public/wasm
