@@ -4,6 +4,9 @@ project(SudokuSolver VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Add -fpermissive for compatibility with minisat and newer GCC
+add_compile_options(-fpermissive)
+
 # Options
 option(BUILD_TESTS "Build test suite" ON)
 option(STATIC_BINARIES "Link binaries statically" ON)
@@ -36,6 +39,7 @@ set(MINISAT_SOURCES
 # Create MiniSat static library
 add_library(minisat STATIC ${MINISAT_SOURCES})
 target_include_directories(minisat PUBLIC ${CMAKE_SOURCE_DIR}/minisat)
+target_compile_options(minisat PRIVATE -fpermissive)
 if(ZLIB_FOUND)
     target_link_libraries(minisat ${ZLIB_LIBRARY})
 endif()
@@ -57,6 +61,7 @@ set(SUDOKU_SOLVER_SOURCES
 add_library(sudoku_solver STATIC ${SUDOKU_SOLVER_SOURCES})
 target_link_libraries(sudoku_solver minisat)
 target_include_directories(sudoku_solver PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_compile_options(sudoku_solver PRIVATE -fpermissive)
 
 # Main executable
 add_executable(sudoku_solve src/main.cpp)
