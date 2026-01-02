@@ -38,7 +38,7 @@ export async function initWasm(): Promise<void> {
     loadingPromise = new Promise((resolve, reject) => {
       // 动态加载 WASM JS 文件
       const script = document.createElement("script");
-      script.src = "/wasm/sudoku_wasm.js";
+      script.src = "/Sudoku-Solver/wasm/sudoku_wasm.js";
       script.onload = async () => {
         try {
           if (window.createSudokuModule) {

@@ -24,6 +24,12 @@ include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/minisat)
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_ZLIB=1")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s USE_ZLIB=1")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_ZLIB=1")
+endif()
+
 # Find ZLIB (optional for MiniSat)
 find_package(ZLIB QUIET)
 if(ZLIB_FOUND)
@@ -44,6 +50,7 @@ set(MINISAT_SOURCES
 # Create MiniSat static library
 add_library(minisat STATIC ${MINISAT_SOURCES})
 target_include_directories(minisat PUBLIC ${CMAKE_SOURCE_DIR}/minisat)
+target_compile_options(minisat PRIVATE -Wno-reserved-user-defined-literal)
 if(ZLIB_FOUND)
     target_link_libraries(minisat ${ZLIB_LIBRARY})
 endif()

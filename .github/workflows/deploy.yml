@@ -24,6 +24,23 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Setup Build Tools
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "4.1.0"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
       - name: Setup MiniSat
         run: |
           # Clone MiniSat SAT solver (always needed in CI environment)
@@ -34,11 +51,14 @@ jobs:
               exit 1
             }
           fi
+          cp System.cc minisat/minisat/utils/System.cc
+          cp SolverTypes.h minisat/minisat/core/SolverTypes.h
+          cp Options.h minisat/minisat/utils/Options.h
 
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
-          version: '3.1.71'
+          version: "4.0.22"
 
       - name: Build WebAssembly
         run: |
@@ -61,13 +81,6 @@ jobs:
           fi
           cp build-wasm/sudoku_wasm.js frontend/public/wasm/
           cp build-wasm/sudoku_wasm.wasm frontend/public/wasm/
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         run: |
