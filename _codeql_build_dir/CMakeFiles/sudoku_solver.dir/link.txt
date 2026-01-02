@@ -1,2 +1,0 @@
-/usr/bin/ar qc libsudoku_solver.a CMakeFiles/sudoku_solver.dir/src/SudokuSolver.cpp.o CMakeFiles/sudoku_solver.dir/src/SudokuEncoder.cpp.o CMakeFiles/sudoku_solver.dir/src/SudokuParser.cpp.o CMakeFiles/sudoku_solver.dir/src/SudokuGenerator.cpp.o
-/usr/bin/ranlib libsudoku_solver.a
