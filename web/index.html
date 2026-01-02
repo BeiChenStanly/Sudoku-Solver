@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数独求解器 - Sudoku Solver</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧩 数独求解器</h1>
+            <p class="subtitle">Sudoku Solver - 支持标准数独、杀手数独、不等式数独</p>
+        </header>
+
+        <main>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="puzzle-type">谜题类型:</label>
+                    <select id="puzzle-type">
+                        <option value="standard">标准数独</option>
+                        <option value="killer">杀手数独</option>
+                        <option value="inequality">不等式数独</option>
+                        <option value="mixed">混合数独</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="check-unique">
+                        检查唯一解
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid-container">
+                <canvas id="sudoku-canvas" width="450" height="450"></canvas>
+            </div>
+
+            <div class="button-group">
+                <button id="solve-btn" class="btn btn-primary">求解</button>
+                <button id="clear-btn" class="btn btn-secondary">清空</button>
+                <button id="generate-btn" class="btn btn-success">生成谜题</button>
+                <button id="example-btn" class="btn btn-info">加载示例</button>
+            </div>
+
+            <div class="status-panel">
+                <div id="status" class="status">请输入数独谜题，然后点击"求解"</div>
+                <div id="stats" class="stats hidden">
+                    <span>求解时间: <strong id="solve-time">-</strong></span>
+                    <span>唯一性: <strong id="uniqueness">-</strong></span>
+                </div>
+            </div>
+
+            <div class="cage-controls hidden" id="cage-controls">
+                <h3>笼子设置 (杀手数独)</h3>
+                <div class="cage-list" id="cage-list"></div>
+                <button id="add-cage-btn" class="btn btn-small">+ 添加笼子</button>
+            </div>
+
+            <div class="inequality-controls hidden" id="inequality-controls">
+                <h3>不等式约束</h3>
+                <div class="inequality-list" id="inequality-list"></div>
+                <button id="add-inequality-btn" class="btn btn-small">+ 添加不等式</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>基于 MiniSat SAT 求解器 | <a href="https://github.com/BeiChenStanly/Sudoku-Solver" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="sudoku.js"></script>
+</body>
+</html>

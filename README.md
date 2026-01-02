@@ -1,6 +1,17 @@
 # Sudoku Solver & Generator using MiniSat
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://isocpp.org/std/the-standard)
+[![CMake](https://img.shields.io/badge/CMake-3.14+-green.svg)](https://cmake.org/)
+
 基于 MiniSat SAT 求解器的数独求解和生成程序，支持多种数独变体。
+
+## ✨ 特性
+
+- 🚀 **高性能 SAT 求解** - 使用 MiniSat 求解器，毫秒级求解
+- 🔍 **唯一性检查** - 验证解是否唯一
+- 🎮 **Web 前端** - 基于 Canvas 的交互式界面
+- 📦 **多种数独类型** - 支持标准、杀手、不等式和混合数独
 
 ## 支持的数独类型
 
@@ -8,6 +19,30 @@
 2. **杀手数独 (Killer Sudoku)** - 带有笼子约束，每个笼子内数字之和等于指定值且不重复
 3. **不等式数独 (Inequality Sudoku)** - 相邻格子间有大于/小于约束
 4. **混合数独 (Mixed Sudoku)** - 杀手数独和不等式数独的组合
+
+## 🌐 Web 前端
+
+项目包含一个基于 Canvas 的交互式 Web 前端，可以直接在浏览器中使用。
+
+### 启动 Web 前端
+
+```bash
+# 方法 1: 使用 Python 内置服务器
+cd web
+python -m http.server 8080
+# 然后访问 http://localhost:8080
+
+# 方法 2: 直接打开 HTML 文件
+# 在浏览器中打开 web/index.html
+```
+
+### Web 前端功能
+
+- 🖱️ 点击选择格子，键盘输入数字 (1-9)
+- ⌫ Backspace/Delete/0 清除格子
+- ↑↓←→ 方向键移动选择
+- 🎲 生成随机谜题
+- ✅ 检查解的唯一性
 
 ## 构建项目
 
@@ -225,6 +260,9 @@ std::string outputWithSolution = generator.toCustomFormatWithSolution(puzzle, so
 Sudoku Solver/
 ├── CMakeLists.txt             # 主构建配置
 ├── README.md                  # 本文件
+├── LICENSE                    # MIT 许可证
+├── CONTRIBUTING.md            # 贡献指南
+├── CODE_OF_CONDUCT.md         # 行为准则
 ├── src/
 │   ├── SudokuTypes.h          # 数据类型定义
 │   ├── SudokuSolver.h/cpp     # 高层求解接口
@@ -232,13 +270,18 @@ Sudoku Solver/
 │   ├── SudokuParser.h/cpp     # 输入解析器
 │   ├── SudokuGenerator.h/cpp  # 谜题生成器
 │   └── main.cpp               # 命令行入口
+├── web/
+│   ├── index.html             # Web 前端入口
+│   ├── style.css              # 样式文件
+│   └── sudoku.js              # JavaScript 逻辑
 ├── tests/
 │   ├── test_main.cpp
 │   ├── test_standard_sudoku.cpp
 │   ├── test_killer_sudoku.cpp
 │   ├── test_inequality_sudoku.cpp
 │   ├── test_mixed_sudoku.cpp
-│   └── test_generator.cpp
+│   ├── test_generator.cpp
+│   └── test_uniqueness.cpp    # 唯一性测试
 ├── examples/
 │   ├── standard_easy.txt
 │   ├── standard_hard.txt
@@ -270,6 +313,23 @@ Sudoku Solver/
 
 对于 cell1 > cell2：禁止所有 (v1, v2) 使得 v1 ≤ v2
 
-## 许可证
+## 🤝 贡献
 
-本项目使用 MIT 许可证。MiniSat 使用其原始许可证。
+欢迎贡献！请查看 [CONTRIBUTING.md](CONTRIBUTING.md) 了解详情。
+
+1. Fork 本仓库
+2. 创建您的特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交您的更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 打开一个 Pull Request
+
+## 📄 许可证
+
+本项目使用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+MiniSat 使用其原始许可证。
+
+## 🙏 致谢
+
+- [MiniSat](http://minisat.se/) - 高效的 SAT 求解器
+- [Google Test](https://github.com/google/googletest) - C++ 测试框架

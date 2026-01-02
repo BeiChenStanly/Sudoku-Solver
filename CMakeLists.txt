@@ -93,6 +93,7 @@ if(BUILD_TESTS)
         tests/test_inequality_sudoku.cpp
         tests/test_mixed_sudoku.cpp
         tests/test_generator.cpp
+        tests/test_uniqueness.cpp
     )
     target_link_libraries(sudoku_tests 
         sudoku_solver 
