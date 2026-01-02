@@ -21,6 +21,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup MiniSat
+        run: |
+          if [ ! -d "minisat" ]; then
+            echo "MiniSat not found, cloning..."
+            git clone https://github.com/niklasso/minisat.git minisat
+          fi
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: '3.1.51'
+
+      - name: Build WebAssembly
+        run: |
+          mkdir -p build-wasm
+          cd build-wasm
+          emcmake cmake .. -DCMAKE_BUILD_TYPE=Release
+          emmake cmake --build . --config Release
+          
+      - name: Copy WASM files to frontend
+        run: |
+          mkdir -p frontend/public/wasm
+          cp build-wasm/sudoku_wasm.js frontend/public/wasm/
+          cp build-wasm/sudoku_wasm.wasm frontend/public/wasm/
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
