@@ -232,10 +232,11 @@ namespace sudoku
     {
         int grid[GRID_SIZE][GRID_SIZE];
         bool solved;
+        bool isUnique;  // True if solution is unique (when uniqueness check is performed)
         std::string errorMessage;
         double solveTimeMs;
 
-        SudokuSolution() : solved(false), solveTimeMs(0.0)
+        SudokuSolution() : solved(false), isUnique(true), solveTimeMs(0.0)
         {
             for (int i = 0; i < GRID_SIZE; i++)
             {

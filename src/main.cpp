@@ -26,6 +26,8 @@ void printUsage(const char *progName)
     std::cout << "  " << progName << " --string \"<grid>\"    Solve from 81-char string\n";
     std::cout << "  " << progName << " --generate [options] Generate a new puzzle\n";
     std::cout << "  " << progName << " --help               Show this help\n\n";
+    std::cout << "Solve Options:\n";
+    std::cout << "  --unique, -u         Check if solution is unique\n\n";
     std::cout << "Generate Options:\n";
     std::cout << "  --type <TYPE>        Puzzle type: standard, killer, inequality, mixed (default: mixed)\n";
     std::cout << "  --cages <MIN> <MAX>  Number of cages (default: 10 20)\n";
@@ -231,25 +233,45 @@ int main(int argc, char *argv[])
     {
         sudoku::SudokuSolver solver;
         sudoku::SudokuPuzzle puzzle;
+        bool checkUniqueness = false;
 
-        if (arg1 == "--string" || arg1 == "-s")
+        // Parse arguments
+        int fileArgIndex = 1;
+        for (int i = 1; i < argc; i++)
         {
-            if (argc < 3)
+            std::string arg = argv[i];
+            if (arg == "--unique" || arg == "-u")
             {
-                std::cerr << "Error: --string requires a puzzle string\n";
-                return 1;
+                checkUniqueness = true;
             }
-            puzzle = sudoku::SudokuParser::parseFromString(argv[2]);
+            else if (arg == "--string" || arg == "-s")
+            {
+                fileArgIndex = -1; // Will handle string input
+                if (i + 1 < argc)
+                {
+                    puzzle = sudoku::SudokuParser::parseFromString(argv[++i]);
+                }
+                else
+                {
+                    std::cerr << "Error: --string requires a puzzle string\n";
+                    return 1;
+                }
+            }
+            else if (arg[0] != '-')
+            {
+                fileArgIndex = i;
+            }
         }
-        else
+
+        if (fileArgIndex > 0)
         {
-            puzzle = sudoku::SudokuParser::parseFromFile(arg1);
+            puzzle = sudoku::SudokuParser::parseFromFile(argv[fileArgIndex]);
         }
 
         printPuzzleInfo(puzzle);
-        std::cout << "\nSolving...\n\n";
+        std::cout << "\nSolving" << (checkUniqueness ? " (with uniqueness check)" : "") << "...\n\n";
 
-        auto solution = solver.solve(puzzle);
+        auto solution = solver.solve(puzzle, checkUniqueness);
 
         std::cout << sudoku::SudokuParser::toString(solution);
 
@@ -264,6 +286,18 @@ int main(int argc, char *argv[])
             {
                 std::cout << "\n✗ Solution verification failed!\n";
                 return 1;
+            }
+
+            if (checkUniqueness)
+            {
+                if (solution.isUnique)
+                {
+                    std::cout << "✓ Solution is unique!\n";
+                }
+                else
+                {
+                    std::cout << "✗ Multiple solutions exist.\n";
+                }
             }
 
             std::cout << "\nStatistics:\n";

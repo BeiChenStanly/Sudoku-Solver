@@ -17,21 +17,21 @@ namespace sudoku
     {
     }
 
-    SudokuSolution SudokuSolver::solve(const SudokuPuzzle &puzzle)
+    SudokuSolution SudokuSolver::solve(const SudokuPuzzle &puzzle, bool checkUniqueness)
     {
-        return encoder.solve(puzzle);
+        return encoder.solve(puzzle, checkUniqueness);
     }
 
-    SudokuSolution SudokuSolver::solveFromString(const std::string &input)
+    SudokuSolution SudokuSolver::solveFromString(const std::string &input, bool checkUniqueness)
     {
         SudokuPuzzle puzzle = SudokuParser::parseFromString(input);
-        return solve(puzzle);
+        return solve(puzzle, checkUniqueness);
     }
 
-    SudokuSolution SudokuSolver::solveFromFile(const std::string &filename)
+    SudokuSolution SudokuSolver::solveFromFile(const std::string &filename, bool checkUniqueness)
     {
         SudokuPuzzle puzzle = SudokuParser::parseFromFile(filename);
-        return solve(puzzle);
+        return solve(puzzle, checkUniqueness);
     }
 
     bool SudokuSolver::verifyBasicConstraints(const SudokuSolution &solution)

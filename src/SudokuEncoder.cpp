@@ -274,80 +274,144 @@ namespace sudoku
             return;
         }
 
-        // For each combination, at least one assignment of values to cells must work
-        // This is encoded by considering all permutations of each combination
+        // OPTIMIZED ENCODING:
+        // Since cage uniqueness is encoded separately (each value appears at most once),
+        // we only need to ensure the SET of values equals one of the valid combinations.
+        // 
+        // Key insight: No need to enumerate permutations! We work with combinations only.
+        // For a cage with n cells, if we pick combination {v1, v2, ..., vn}:
+        // - Each value in the combination must appear in SOME cell (at-least-one)
+        // - Values outside the combination must NOT appear in any cell (forbidden)
+        //
+        // Combined with cage uniqueness (at-most-one per value), this ensures
+        // exactly the right set of values.
 
-        // For small cages, enumerate all valid assignments
-        std::vector<std::vector<std::pair<Cell, int>>> validAssignments;
-
-        for (const auto &combo : combinations)
+        if (combinations.size() == 1)
         {
-            // Generate all permutations of this combination
-            std::vector<int> perm = combo;
-            std::sort(perm.begin(), perm.end());
-
-            do
+            // Only one valid combination - directly constrain cells
+            const auto &combo = combinations[0];
+            std::set<int> validValues(combo.begin(), combo.end());
+            
+            // For each value in the combination: at least one cell must have it
+            // (Combined with uniqueness, exactly one cell has it)
+            for (int val : combo)
             {
-                std::vector<std::pair<Cell, int>> assignment;
-                for (size_t i = 0; i < cage.cells.size(); i++)
+                std::vector<Minisat::Lit> atLeastOne;
+                for (const auto &cell : cage.cells)
                 {
-                    assignment.push_back({cage.cells[i], perm[i]});
+                    atLeastOne.push_back(getLit(cell.row, cell.col, val));
                 }
-                validAssignments.push_back(assignment);
-            } while (std::next_permutation(perm.begin(), perm.end()));
-        }
-
-        // Encode: at least one valid assignment must be chosen
-        // For each valid assignment, create a fresh variable that represents it
-        // Then add clause that at least one of these variables is true
-        // And for each assignment variable, imply the cell values
-
-        if (validAssignments.size() == 1)
-        {
-            // Only one valid assignment - just assert it directly
-            for (const auto &[cell, val] : validAssignments[0])
+                addClause(atLeastOne);
+            }
+            
+            // For each value NOT in the combination: no cell can have it
+            for (int val = MIN_VALUE; val <= MAX_VALUE; val++)
             {
-                addClause(getLit(cell.row, cell.col, val));
+                if (validValues.find(val) == validValues.end())
+                {
+                    for (const auto &cell : cage.cells)
+                    {
+                        addClause(~getLit(cell.row, cell.col, val));
+                    }
+                }
             }
         }
         else
         {
-            // Create auxiliary variables for each valid assignment
-            std::vector<Minisat::Var> assignVars;
-            for (size_t i = 0; i < validAssignments.size(); i++)
+            // Multiple valid combinations - use auxiliary variables for combinations
+            std::vector<Minisat::Var> comboVars;
+            for (size_t i = 0; i < combinations.size(); i++)
             {
                 Minisat::Var v = solver->newVar();
-                assignVars.push_back(v);
+                comboVars.push_back(v);
                 numVariables++;
             }
 
-            // At least one assignment must be true
-            std::vector<Minisat::Lit> atLeastOne;
-            for (auto v : assignVars)
+            // Exactly one combination must be chosen
+            std::vector<Minisat::Lit> comboLits;
+            for (auto v : comboVars)
             {
-                atLeastOne.push_back(Minisat::mkLit(v));
+                comboLits.push_back(Minisat::mkLit(v));
             }
-            addClause(atLeastOne);
+            addExactlyOne(comboLits);
 
-            // For each assignment variable, if it's true, the cells must have those values
-            for (size_t i = 0; i < validAssignments.size(); i++)
+            // For each combination:
+            // If combo_i is true:
+            //   - Each value in combo_i must appear in some cell
+            //   - Each value NOT in combo_i must not appear in any cell
+            for (size_t i = 0; i < combinations.size(); i++)
             {
-                Minisat::Lit assignLit = Minisat::mkLit(assignVars[i]);
-                for (const auto &[cell, val] : validAssignments[i])
+                Minisat::Lit comboLit = Minisat::mkLit(comboVars[i]);
+                const auto &combo = combinations[i];
+                std::set<int> comboSet(combo.begin(), combo.end());
+
+                // If combo is chosen, each value in it must appear in some cell
+                for (int val : combo)
                 {
-                    // assignVar -> cell has value val
-                    // ~assignVar OR cell[val]
-                    addClause(~assignLit, getLit(cell.row, cell.col, val));
+                    // combo_i -> (cell_0[val] OR cell_1[val] OR ... OR cell_n[val])
+                    // Equivalent to: ~combo_i OR cell_0[val] OR ... OR cell_n[val]
+                    std::vector<Minisat::Lit> clause;
+                    clause.push_back(~comboLit);
+                    for (const auto &cell : cage.cells)
+                    {
+                        clause.push_back(getLit(cell.row, cell.col, val));
+                    }
+                    addClause(clause);
+                }
+
+                // If combo is chosen, values outside it must not appear
+                for (int val = MIN_VALUE; val <= MAX_VALUE; val++)
+                {
+                    if (comboSet.find(val) == comboSet.end())
+                    {
+                        // combo_i -> (~cell_0[val] AND ~cell_1[val] AND ... AND ~cell_n[val])
+                        // Equivalent to: for each cell, ~combo_i OR ~cell[val]
+                        for (const auto &cell : cage.cells)
+                        {
+                            addClause(~comboLit, ~getLit(cell.row, cell.col, val));
+                        }
+                    }
                 }
             }
 
-            // Also: if cell values match an assignment, that assignment var could be true
-            // This is handled implicitly by the "at least one" clause
-
-            // For correctness, we also need: if all cells in an assignment have their values,
-            // then the assignment var must be true (for the sum constraint to be enforced)
-            // Actually, this is already enforced because we said at least one assignment is true,
-            // and the implications ensure consistency
+            // Channeling: if all cells have values from a combination, that combo must be true
+            // For efficiency, encode the reverse implication for each cell-value pair
+            for (const auto &cell : cage.cells)
+            {
+                for (int val = MIN_VALUE; val <= MAX_VALUE; val++)
+                {
+                    // cell[val] -> (combo_i1 OR combo_i2 OR ...) where val is in combo_i
+                    // This ensures if a cell has value v, some combo containing v is chosen
+                    std::vector<Minisat::Lit> supportingCombos;
+                    for (size_t i = 0; i < combinations.size(); i++)
+                    {
+                        const auto &combo = combinations[i];
+                        if (std::find(combo.begin(), combo.end(), val) != combo.end())
+                        {
+                            supportingCombos.push_back(Minisat::mkLit(comboVars[i]));
+                        }
+                    }
+                    
+                    if (supportingCombos.empty())
+                    {
+                        // No combination supports this value - forbid it
+                        addClause(~getLit(cell.row, cell.col, val));
+                    }
+                    else if (supportingCombos.size() < combinations.size())
+                    {
+                        // cell[val] -> OR(supporting combos)
+                        // ~cell[val] OR supporting_combo_1 OR supporting_combo_2 OR ...
+                        std::vector<Minisat::Lit> clause;
+                        clause.push_back(~getLit(cell.row, cell.col, val));
+                        for (const auto &lit : supportingCombos)
+                        {
+                            clause.push_back(lit);
+                        }
+                        addClause(clause);
+                    }
+                    // If all combinations support this value, no constraint needed
+                }
+            }
         }
     }
 
@@ -414,7 +478,7 @@ namespace sudoku
         }
     }
 
-    SudokuSolution SudokuEncoder::solve(const SudokuPuzzle &puzzle)
+    SudokuSolution SudokuEncoder::solve(const SudokuPuzzle &puzzle, bool checkUniqueness)
     {
         SudokuSolution solution;
 
@@ -465,6 +529,34 @@ namespace sudoku
                         }
                     }
                 }
+            }
+
+            // Check uniqueness if requested
+            if (checkUniqueness)
+            {
+                // Block the current solution by adding a clause that says
+                // at least one cell must have a different value
+                Minisat::vec<Minisat::Lit> blockingClause;
+                for (int row = 0; row < GRID_SIZE; row++)
+                {
+                    for (int col = 0; col < GRID_SIZE; col++)
+                    {
+                        int val = solution.grid[row][col];
+                        // Add the negation of this assignment
+                        blockingClause.push(~getLit(row, col, val));
+                    }
+                }
+                solver->addClause(blockingClause);
+                numClauses++;
+
+                // Try to find another solution
+                auto uniqueStartTime = std::chrono::high_resolution_clock::now();
+                bool hasSecondSolution = solver->solve();
+                auto uniqueEndTime = std::chrono::high_resolution_clock::now();
+                double uniqueTimeMs = std::chrono::duration<double, std::milli>(uniqueEndTime - uniqueStartTime).count();
+                solution.solveTimeMs += uniqueTimeMs;
+
+                solution.isUnique = !hasSecondSolution;
             }
         }
         else

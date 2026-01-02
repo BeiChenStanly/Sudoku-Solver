@@ -27,23 +27,26 @@ namespace sudoku
         /**
          * @brief Solve a Sudoku puzzle
          * @param puzzle The puzzle to solve
+         * @param checkUniqueness If true, verify that the solution is unique
          * @return The solution
          */
-        SudokuSolution solve(const SudokuPuzzle &puzzle);
+        SudokuSolution solve(const SudokuPuzzle &puzzle, bool checkUniqueness = false);
 
         /**
          * @brief Solve a Sudoku from a string
          * @param input String representation of the puzzle
+         * @param checkUniqueness If true, verify that the solution is unique
          * @return The solution
          */
-        SudokuSolution solveFromString(const std::string &input);
+        SudokuSolution solveFromString(const std::string &input, bool checkUniqueness = false);
 
         /**
          * @brief Solve a Sudoku from a file
          * @param filename Path to the puzzle file
+         * @param checkUniqueness If true, verify that the solution is unique
          * @return The solution
          */
-        SudokuSolution solveFromFile(const std::string &filename);
+        SudokuSolution solveFromFile(const std::string &filename, bool checkUniqueness = false);
 
         /**
          * @brief Verify that a solution is valid

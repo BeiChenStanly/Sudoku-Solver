@@ -32,9 +32,10 @@ namespace sudoku
         /**
          * @brief Encode a Sudoku puzzle as SAT and solve it
          * @param puzzle The puzzle to solve
+         * @param checkUniqueness If true, verify that the solution is unique
          * @return The solution (check solved field for success)
          */
-        SudokuSolution solve(const SudokuPuzzle &puzzle);
+        SudokuSolution solve(const SudokuPuzzle &puzzle, bool checkUniqueness = false);
 
         /**
          * @brief Get statistics about the encoding
