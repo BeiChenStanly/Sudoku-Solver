@@ -58,9 +58,17 @@ namespace sudoku
         // Step 2: Generate constraints based on puzzle type
         if (config.type == SudokuType::KILLER || config.type == SudokuType::KILLER_INEQUALITY)
         {
-            std::uniform_int_distribution<int> cageDist(config.minCages, config.maxCages);
-            int numCages = cageDist(rng);
-            generateCages(puzzle, solution, numCages, config.minCageSize, config.maxCageSize);
+            if (config.fillAllCells)
+            {
+                // Generate cages that cover all cells
+                generateCagesFillingAll(puzzle, solution, config.minCageSize, config.maxCageSize);
+            }
+            else
+            {
+                std::uniform_int_distribution<int> cageDist(config.minCages, config.maxCages);
+                int numCages = cageDist(rng);
+                generateCages(puzzle, solution, numCages, config.minCageSize, config.maxCageSize);
+            }
         }
 
         if (config.type == SudokuType::INEQUALITY || config.type == SudokuType::KILLER_INEQUALITY)
@@ -81,13 +89,40 @@ namespace sudoku
         // Step 4: Verify unique solution if required
         if (config.ensureUniqueSolution)
         {
-            // Try solving and check if there's exactly one solution
-            auto testSolution = solver.solve(puzzle);
-            if (!testSolution.solved)
+            // Check if the puzzle has a unique solution
+            auto testSolution = solver.solve(puzzle, true);  // Check uniqueness
+            
+            // Maximum attempts to achieve uniqueness through constraints
+            const int kMaxConstraintAttempts = 10;
+            // Maximum given values to add (failsafe to prevent infinite loop)
+            const int kMaxGivensToAdd = 81;  // Can't add more than 81 givens
+            
+            int attempts = 0;
+            while (testSolution.solved && !testSolution.isUnique() && attempts < kMaxConstraintAttempts)
             {
-                // If no solution found, add more constraints or givens
-                // For simplicity, add some given values
-                addGivens(puzzle, solution, 5);
+                // Add more constraints to ensure uniqueness
+                if (config.type == SudokuType::INEQUALITY || config.type == SudokuType::KILLER_INEQUALITY)
+                {
+                    // Try adding more inequalities first
+                    generateInequalities(puzzle, solution, 5);
+                }
+                else
+                {
+                    // Add given values
+                    addGivens(puzzle, solution, 3);
+                }
+                
+                testSolution = solver.solve(puzzle, true);
+                attempts++;
+            }
+            
+            // If still not unique after max constraint attempts, add givens one at a time
+            int givensAdded = 0;
+            while (testSolution.solved && !testSolution.isUnique() && givensAdded < kMaxGivensToAdd)
+            {
+                addGivens(puzzle, solution, 1);
+                testSolution = solver.solve(puzzle, true);
+                givensAdded++;
             }
         }
 
@@ -309,6 +344,50 @@ namespace sudoku
             { // Only add cages with at least 2 cells
                 int sum = calculateCageSum(cells, solution);
                 puzzle.addCage(Cage(cells, sum));
+            }
+        }
+    }
+
+    void SudokuGenerator::generateCagesFillingAll(SudokuPuzzle &puzzle,
+                                                  const SudokuSolution &solution,
+                                                  int minSize, int maxSize)
+    {
+        std::set<Cell> usedCells;
+        std::uniform_int_distribution<int> sizeDist(minSize, maxSize);
+
+        // Keep generating cages until all cells are covered
+        while (usedCells.size() < GRID_SIZE * GRID_SIZE)
+        {
+            int targetSize = sizeDist(rng);
+            
+            // Adjust target size if not enough cells remaining
+            int remainingCells = GRID_SIZE * GRID_SIZE - static_cast<int>(usedCells.size());
+            if (targetSize > remainingCells)
+            {
+                targetSize = remainingCells;
+            }
+            if (targetSize < minSize && remainingCells >= minSize)
+            {
+                targetSize = minSize;
+            }
+
+            auto cells = generateConnectedCage(solution, usedCells, targetSize);
+
+            if (cells.size() >= 2)
+            { // Only add cages with at least 2 cells
+                int sum = calculateCageSum(cells, solution);
+                puzzle.addCage(Cage(cells, sum));
+            }
+            else if (cells.size() == 1)
+            {
+                // Single cell left - create a single-cell cage (sum = value)
+                int sum = calculateCageSum(cells, solution);
+                puzzle.addCage(Cage(cells, sum));
+            }
+            else
+            {
+                // No more cells available or couldn't create cage
+                break;
             }
         }
     }

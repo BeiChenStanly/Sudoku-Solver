@@ -49,6 +49,9 @@ namespace sudoku
 
         // Ensure unique solution
         bool ensureUniqueSolution = true;
+
+        // Whether cages should cover all cells (for killer/mixed)
+        bool fillAllCells = false;
     };
 
     /**
@@ -107,6 +110,10 @@ namespace sudoku
         // Generate cage constraints based on solution
         void generateCages(SudokuPuzzle &puzzle, const SudokuSolution &solution,
                            int numCages, int minSize, int maxSize);
+
+        // Generate cages that cover all cells
+        void generateCagesFillingAll(SudokuPuzzle &puzzle, const SudokuSolution &solution,
+                                     int minSize, int maxSize);
 
         // Generate inequality constraints based on solution
         void generateInequalities(SudokuPuzzle &puzzle, const SudokuSolution &solution,

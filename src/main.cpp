@@ -26,6 +26,8 @@ void printUsage(const char *progName)
     std::cout << "  " << progName << " --string \"<grid>\"    Solve from 81-char string\n";
     std::cout << "  " << progName << " --generate [options] Generate a new puzzle\n";
     std::cout << "  " << progName << " --help               Show this help\n\n";
+    std::cout << "Solve Options:\n";
+    std::cout << "  --unique, -u         Check if solution is unique\n\n";
     std::cout << "Generate Options:\n";
     std::cout << "  --type <TYPE>        Puzzle type: standard, killer, inequality, mixed (default: mixed)\n";
     std::cout << "  --cages <MIN> <MAX>  Number of cages (default: 10 20)\n";
@@ -33,7 +35,9 @@ void printUsage(const char *progName)
     std::cout << "  --givens <MIN> <MAX> Number of given values (default: 0 10)\n";
     std::cout << "  --seed <N>           Random seed for reproducibility\n";
     std::cout << "  --output <file>      Output file (default: stdout)\n";
-    std::cout << "  --with-solution      Include solution in output\n\n";
+    std::cout << "  --with-solution      Include solution in output\n";
+    std::cout << "  --fill-all           Make cages cover all cells (for killer/mixed)\n";
+    std::cout << "  --no-unique          Don't ensure unique solution (faster generation)\n\n";
     std::cout << "Input Formats:\n";
     std::cout << "  1. Simple grid (81 characters, use . or 0 for empty cells):\n";
     std::cout << "     530070000600195000098000060800060003400803001700020006060000280000419005000080079\n\n";
@@ -119,6 +123,19 @@ int runGenerate(int argc, char *argv[])
         else if (arg == "--with-solution")
         {
             withSolution = true;
+        }
+        else if (arg == "--fill-all")
+        {
+            config.fillAllCells = true;
+        }
+        else if (arg == "--no-unique")
+        {
+            config.ensureUniqueSolution = false;
+        }
+        else if (arg[0] == '-')
+        {
+            std::cerr << "Error: Unknown generate option: " << arg << "\n";
+            return 1;
         }
     }
 
@@ -231,25 +248,64 @@ int main(int argc, char *argv[])
     {
         sudoku::SudokuSolver solver;
         sudoku::SudokuPuzzle puzzle;
+        bool checkUniqueness = false;
+        bool puzzleLoaded = false;
 
-        if (arg1 == "--string" || arg1 == "-s")
+        // Parse arguments
+        for (int i = 1; i < argc; i++)
         {
-            if (argc < 3)
+            std::string arg = argv[i];
+            if (arg == "--unique" || arg == "-u")
             {
-                std::cerr << "Error: --string requires a puzzle string\n";
+                checkUniqueness = true;
+            }
+            else if (arg == "--string" || arg == "-s")
+            {
+                if (puzzleLoaded)
+                {
+                    std::cerr << "Error: Cannot specify both a puzzle file and --string\n";
+                    return 1;
+                }
+                if (i + 1 < argc)
+                {
+                    puzzle = sudoku::SudokuParser::parseFromString(argv[++i]);
+                    puzzleLoaded = true;
+                }
+                else
+                {
+                    std::cerr << "Error: --string requires a puzzle string\n";
+                    return 1;
+                }
+            }
+            else if (arg[0] == '-')
+            {
+                std::cerr << "Error: Unknown option: " << arg << "\n";
+                printUsage(argv[0]);
                 return 1;
             }
-            puzzle = sudoku::SudokuParser::parseFromString(argv[2]);
+            else if (!puzzleLoaded)
+            {
+                puzzle = sudoku::SudokuParser::parseFromFile(arg);
+                puzzleLoaded = true;
+            }
+            else
+            {
+                std::cerr << "Error: Unexpected argument: " << arg << "\n";
+                printUsage(argv[0]);
+                return 1;
+            }
         }
-        else
+
+        if (!puzzleLoaded)
         {
-            puzzle = sudoku::SudokuParser::parseFromFile(arg1);
+            std::cerr << "Error: No puzzle file or string provided\n";
+            return 1;
         }
 
         printPuzzleInfo(puzzle);
-        std::cout << "\nSolving...\n\n";
+        std::cout << "\nSolving" << (checkUniqueness ? " (with uniqueness check)" : "") << "...\n\n";
 
-        auto solution = solver.solve(puzzle);
+        auto solution = solver.solve(puzzle, checkUniqueness);
 
         std::cout << sudoku::SudokuParser::toString(solution);
 
@@ -264,6 +320,18 @@ int main(int argc, char *argv[])
             {
                 std::cout << "\n✗ Solution verification failed!\n";
                 return 1;
+            }
+
+            if (solution.uniquenessChecked())
+            {
+                if (solution.isUnique())
+                {
+                    std::cout << "✓ Solution is unique!\n";
+                }
+                else
+                {
+                    std::cout << "✗ Multiple solutions exist.\n";
+                }
             }
 
             std::cout << "\nStatistics:\n";

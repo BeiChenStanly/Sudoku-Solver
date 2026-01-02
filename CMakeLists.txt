@@ -4,6 +4,14 @@ project(SudokuSolver VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Enable compiler optimizations in Release mode
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+
 # Options
 option(BUILD_TESTS "Build test suite" ON)
 option(STATIC_BINARIES "Link binaries statically" ON)
@@ -85,6 +93,7 @@ if(BUILD_TESTS)
         tests/test_inequality_sudoku.cpp
         tests/test_mixed_sudoku.cpp
         tests/test_generator.cpp
+        tests/test_uniqueness.cpp
     )
     target_link_libraries(sudoku_tests 
         sudoku_solver 

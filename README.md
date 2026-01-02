@@ -1,6 +1,17 @@
 # Sudoku Solver & Generator using MiniSat
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://isocpp.org/std/the-standard)
+[![CMake](https://img.shields.io/badge/CMake-3.14+-green.svg)](https://cmake.org/)
+
 基于 MiniSat SAT 求解器的数独求解和生成程序，支持多种数独变体。
+
+## ✨ 特性
+
+- 🚀 **高性能 SAT 求解** - 使用 MiniSat 求解器，毫秒级求解
+- 🔍 **唯一性检查** - 验证解是否唯一
+- 🎮 **Web 前端** - 基于 Canvas 的交互式界面
+- 📦 **多种数独类型** - 支持标准、杀手、不等式和混合数独
 
 ## 支持的数独类型
 
@@ -55,9 +66,18 @@ ctest -C Release --output-on-failure
 # 从字符串求解 (81字符)
 ./sudoku_solve --string "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
 
+# 求解并检查解是否唯一
+./sudoku_solve puzzle.txt --unique
+
 # 显示帮助
 ./sudoku_solve --help
 ```
+
+### 求解选项
+
+| 选项           | 说明           |
+| -------------- | -------------- |
+| `--unique, -u` | 检查解是否唯一 |
 
 ### 命令行生成
 
@@ -98,6 +118,8 @@ ctest -C Release --output-on-failure
 | `--seed <N>`           | 随机种子（用于重现）                          | 随机   |
 | `--output <FILE>`      | 输出文件（默认输出到标准输出）                | stdout |
 | `--with-solution`      | 包含解答                                      | 否     |
+| `--fill-all`           | 笼子覆盖所有格子（用于 killer/mixed）         | 否     |
+| `--no-unique`          | 不确保唯一解（生成更快）                      | 否     |
 
 ### 输入格式
 
@@ -214,6 +236,9 @@ std::string outputWithSolution = generator.toCustomFormatWithSolution(puzzle, so
 Sudoku Solver/
 ├── CMakeLists.txt             # 主构建配置
 ├── README.md                  # 本文件
+├── LICENSE                    # MIT 许可证
+├── CONTRIBUTING.md            # 贡献指南
+├── CODE_OF_CONDUCT.md         # 行为准则
 ├── src/
 │   ├── SudokuTypes.h          # 数据类型定义
 │   ├── SudokuSolver.h/cpp     # 高层求解接口
@@ -227,7 +252,8 @@ Sudoku Solver/
 │   ├── test_killer_sudoku.cpp
 │   ├── test_inequality_sudoku.cpp
 │   ├── test_mixed_sudoku.cpp
-│   └── test_generator.cpp
+│   ├── test_generator.cpp
+│   └── test_uniqueness.cpp    # 唯一性测试
 ├── examples/
 │   ├── standard_easy.txt
 │   ├── standard_hard.txt
@@ -259,6 +285,23 @@ Sudoku Solver/
 
 对于 cell1 > cell2：禁止所有 (v1, v2) 使得 v1 ≤ v2
 
-## 许可证
+## 🤝 贡献
 
-本项目使用 MIT 许可证。MiniSat 使用其原始许可证。
+欢迎贡献！请查看 [CONTRIBUTING.md](CONTRIBUTING.md) 了解详情。
+
+1. Fork 本仓库
+2. 创建您的特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交您的更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 打开一个 Pull Request
+
+## 📄 许可证
+
+本项目使用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+MiniSat 使用其原始许可证。
+
+## 🙏 致谢
+
+- [MiniSat](http://minisat.se/) - 高效的 SAT 求解器
+- [Google Test](https://github.com/google/googletest) - C++ 测试框架
