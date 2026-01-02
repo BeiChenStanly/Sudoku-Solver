@@ -19,7 +19,10 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 # Find ZLIB (optional for MiniSat)
 find_package(ZLIB QUIET)
 if(ZLIB_FOUND)
-    include_directories(${ZLIB_INCLUDE_DIR})
+    message(STATUS "ZLIB found: ${ZLIB_LIBRARIES}")
+    include_directories(${ZLIB_INCLUDE_DIRS})
+else()
+    message(STATUS "ZLIB not found - MiniSat will be built without gzip support")
 endif()
 
 # MiniSat library sources
@@ -46,6 +49,8 @@ set(SUDOKU_SOLVER_SOURCES
     src/SudokuEncoder.cpp
     src/SudokuParser.h
     src/SudokuParser.cpp
+    src/SudokuGenerator.h
+    src/SudokuGenerator.cpp
 )
 
 # Create Sudoku Solver static library
@@ -79,6 +84,7 @@ if(BUILD_TESTS)
         tests/test_killer_sudoku.cpp
         tests/test_inequality_sudoku.cpp
         tests/test_mixed_sudoku.cpp
+        tests/test_generator.cpp
     )
     target_link_libraries(sudoku_tests 
         sudoku_solver 
@@ -99,5 +105,6 @@ install(FILES
     src/SudokuSolver.h 
     src/SudokuEncoder.h 
     src/SudokuParser.h 
+    src/SudokuGenerator.h
     DESTINATION include/sudoku
 )

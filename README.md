@@ -1,6 +1,6 @@
-# Sudoku Solver using MiniSat
+# Sudoku Solver & Generator using MiniSat
 
-基于 MiniSat SAT 求解器的数独求解程序，支持多种数独变体。
+基于 MiniSat SAT 求解器的数独求解和生成程序，支持多种数独变体。
 
 ## 支持的数独类型
 
@@ -46,7 +46,7 @@ ctest -C Release --output-on-failure
 
 ## 使用方法
 
-### 命令行
+### 命令行求解
 
 ```bash
 # 从文件求解
@@ -58,6 +58,46 @@ ctest -C Release --output-on-failure
 # 显示帮助
 ./sudoku_solve --help
 ```
+
+### 命令行生成
+
+```bash
+# 生成混合数独（默认）
+./sudoku_solve --generate
+
+# 生成指定类型
+./sudoku_solve --generate --type killer
+./sudoku_solve --generate --type inequality
+./sudoku_solve --generate --type mixed
+./sudoku_solve --generate --type standard
+
+# 自定义参数
+./sudoku_solve --generate --type mixed --cages 10 15 --ineq 10 15
+
+# 设置随机种子（可重现）
+./sudoku_solve --generate --seed 12345
+
+# 输出到文件
+./sudoku_solve --generate --output puzzle.txt
+
+# 同时输出解答
+./sudoku_solve --generate --with-solution
+
+# 完整示例
+./sudoku_solve --generate --type mixed --cages 12 18 --ineq 10 15 --seed 42 --with-solution --output puzzle.txt
+```
+
+### 生成选项
+
+| 选项                   | 说明                                          | 默认值 |
+| ---------------------- | --------------------------------------------- | ------ |
+| `--type <TYPE>`        | 谜题类型: standard, killer, inequality, mixed | mixed  |
+| `--cages <MIN> <MAX>`  | 笼子数量范围                                  | 10 20  |
+| `--ineq <MIN> <MAX>`   | 不等式数量范围                                | 10 20  |
+| `--givens <MIN> <MAX>` | 给定值数量范围                                | 0 10   |
+| `--seed <N>`           | 随机种子（用于重现）                          | 随机   |
+| `--output <FILE>`      | 输出文件（默认输出到标准输出）                | stdout |
+| `--with-solution`      | 包含解答                                      | 否     |
 
 ### 输入格式
 
@@ -115,8 +155,11 @@ INEQUALITIES
 ```cpp
 #include "SudokuSolver.h"
 #include "SudokuParser.h"
+#include "SudokuGenerator.h"
 
 using namespace sudoku;
+
+// ========== 求解谜题 ==========
 
 // 创建求解器
 SudokuSolver solver;
@@ -141,33 +184,57 @@ if (solution.solved) {
 
 // 验证解答
 bool valid = SudokuSolver::verifySolution(puzzle, solution);
+
+// ========== 生成谜题 ==========
+
+// 创建生成器
+SudokuGenerator generator;
+
+// 配置生成参数
+GeneratorConfig config;
+config.type = SudokuType::KILLER_INEQUALITY;  // 混合数独
+config.minCages = 10;
+config.maxCages = 15;
+config.minInequalities = 10;
+config.maxInequalities = 15;
+config.seed = 12345;  // 可选：设置随机种子
+
+// 生成谜题和解答
+SudokuSolution solution;
+SudokuPuzzle puzzle = generator.generateWithSolution(config, solution);
+
+// 输出为自定义格式
+std::string output = generator.toCustomFormat(puzzle);
+std::string outputWithSolution = generator.toCustomFormatWithSolution(puzzle, solution);
 ```
 
 ## 项目结构
 
 ```
 Sudoku Solver/
-├── CMakeLists.txt          # 主构建配置
-├── README.md               # 本文件
+├── CMakeLists.txt             # 主构建配置
+├── README.md                  # 本文件
 ├── src/
-│   ├── SudokuTypes.h       # 数据类型定义
-│   ├── SudokuSolver.h/cpp  # 高层求解接口
-│   ├── SudokuEncoder.h/cpp # SAT 编码器
-│   ├── SudokuParser.h/cpp  # 输入解析器
-│   └── main.cpp            # 命令行入口
+│   ├── SudokuTypes.h          # 数据类型定义
+│   ├── SudokuSolver.h/cpp     # 高层求解接口
+│   ├── SudokuEncoder.h/cpp    # SAT 编码器
+│   ├── SudokuParser.h/cpp     # 输入解析器
+│   ├── SudokuGenerator.h/cpp  # 谜题生成器
+│   └── main.cpp               # 命令行入口
 ├── tests/
 │   ├── test_main.cpp
 │   ├── test_standard_sudoku.cpp
 │   ├── test_killer_sudoku.cpp
 │   ├── test_inequality_sudoku.cpp
-│   └── test_mixed_sudoku.cpp
+│   ├── test_mixed_sudoku.cpp
+│   └── test_generator.cpp
 ├── examples/
 │   ├── standard_easy.txt
 │   ├── standard_hard.txt
 │   ├── killer_sudoku.txt
 │   ├── inequality_sudoku.txt
 │   └── mixed_sudoku.txt
-└── minisat/                # MiniSat SAT 求解器
+└── minisat/                   # MiniSat SAT 求解器
 ```
 
 ## SAT 编码说明
