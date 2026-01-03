@@ -516,13 +516,15 @@ async function generate() {
     selectedCell.value = null;
     markGivenCells();
     recomputeConflicts();
-    renderBoard();
+    isVictory.value = false;
+    showVictoryModal.value = false;
 
     // 重置并启动计时器
     resetTimer();
     startTimer();
-    isVictory.value = false;
-    showVictoryModal.value = false;
+
+    // 在计时器启动后渲染
+    renderBoard();
   } catch (err) {
     errorMsg.value = `生成失败: ${err}`;
   } finally {
@@ -534,13 +536,14 @@ function reset() {
   grid.value = puzzle.value.grid.map((row) => [...row]);
   selectedCell.value = null;
   recomputeConflicts();
+  isVictory.value = false;
+  showVictoryModal.value = false;
 
   // 重置并重新启动计时器
   resetTimer();
   startTimer();
-  isVictory.value = false;
-  showVictoryModal.value = false;
 
+  // 在计时器启动后渲染
   renderBoard();
 }
 
@@ -1010,7 +1013,12 @@ function drawInequalities(ctx: CanvasRenderingContext2D, cellSize: number) {
             </button>
             <button
               class="btn ghost"
-              @click="resetTimer"
+              @click="
+                () => {
+                  resetTimer();
+                  startTimer();
+                }
+              "
               :disabled="!wasmReady"
             >
               重置计时
