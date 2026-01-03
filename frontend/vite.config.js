@@ -4,7 +4,8 @@ import { resolve } from "path";
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [vue()],
-    base: process.env.TAURI_PLATFORM ? "/" : "/Sudoku-Solver/",
+    // Tauri 需要使用相对路径 ./，GitHub Pages 需要 /Sudoku-Solver/
+    base: process.env.TAURI_PLATFORM ? "./" : "/Sudoku-Solver/",
     resolve: {
         alias: {
             "@": resolve(__dirname, "src"),

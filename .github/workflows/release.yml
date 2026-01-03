@@ -81,7 +81,7 @@ jobs:
       matrix:
         platform:
           - name: Linux
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
             bundles: deb,appimage
           - name: Windows
@@ -89,8 +89,12 @@ jobs:
             target: x86_64-pc-windows-msvc
             bundles: msi,nsis
           - name: macOS (Apple Silicon)
-            os: macos-14
+            os: macos-latest
             target: aarch64-apple-darwin
+            bundles: dmg
+          - name: macOS (Intel)
+            os: macos-latest
+            target: x86_64-apple-darwin
             bundles: dmg
 
     runs-on: ${{ matrix.platform.os }}
@@ -111,9 +115,10 @@ jobs:
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install Rust stable
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform.target }}
 
       - name: Install dependencies (Ubuntu)
         if: runner.os == 'Linux'
@@ -124,6 +129,9 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
+
+      - name: Install cross-env globally
+        run: npm install -g cross-env
 
       - name: Copy WASM files
         shell: bash
@@ -151,6 +159,20 @@ jobs:
           projectPath: frontend
           tauriScript: npx tauri
           args: --target ${{ matrix.platform.target }} --bundles ${{ matrix.platform.bundles }}
+
+      - name: Verify build output
+        shell: bash
+        run: |
+          # 验证 dist/index.html 使用的是相对路径而不是绝对路径
+          if grep -q 'href="/Sudoku-Solver/' frontend/dist/index.html; then
+            echo "❌ 错误：dist/index.html 中仍然包含 /Sudoku-Solver/ 路径"
+            exit 1
+          fi
+          if grep -q 'src="./assets' frontend/dist/index.html && grep -q 'href="./assets' frontend/dist/index.html; then
+            echo "✅ 正确：dist/index.html 使用相对路径"
+          else
+            echo "⚠️ 警告：dist/index.html 路径可能不正确"
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -210,6 +232,7 @@ jobs:
             | Windows (MSI 安装包) | `Sudoku Solver_${{ inputs.version }}_x64-setup.msi` |
             | Windows (NSIS 安装包) | `Sudoku Solver_${{ inputs.version }}_x64-setup.exe` |
             | macOS (Apple Silicon) | `Sudoku Solver_${{ inputs.version }}_aarch64.dmg` |
+            | macOS (Intel) | `Sudoku Solver_${{ inputs.version }}_x86_64.dmg` |
             | Linux (Debian/Ubuntu) | `sudoku-solver_${{ inputs.version }}_amd64.deb` |
             | Linux (AppImage) | `sudoku-solver_${{ inputs.version }}_amd64.AppImage` |
 
