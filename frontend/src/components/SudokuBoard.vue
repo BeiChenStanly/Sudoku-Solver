@@ -1011,18 +1011,6 @@ function drawInequalities(ctx: CanvasRenderingContext2D, cellSize: number) {
             >
               {{ timerRunning ? "暂停" : "继续" }}
             </button>
-            <button
-              class="btn ghost"
-              @click="
-                () => {
-                  resetTimer();
-                  startTimer();
-                }
-              "
-              :disabled="!wasmReady"
-            >
-              重置计时
-            </button>
           </div>
         </div>
 
@@ -1032,14 +1020,14 @@ function drawInequalities(ctx: CanvasRenderingContext2D, cellSize: number) {
               <button
                 class="btn primary"
                 @click="generate"
-                :disabled="!wasmReady || isLoading"
+                :disabled="!wasmReady || isLoading || !timerRunning"
               >
                 生成新盘
               </button>
               <button
                 class="btn icon"
                 @click="showGeneratePanel = !showGeneratePanel"
-                :disabled="isLoading"
+                :disabled="isLoading || !timerRunning"
                 aria-label="生成设置"
               >
                 ▾
@@ -1048,11 +1036,15 @@ function drawInequalities(ctx: CanvasRenderingContext2D, cellSize: number) {
             <button
               class="btn ghost"
               @click="solve"
-              :disabled="!wasmReady || isLoading"
+              :disabled="!wasmReady || isLoading || !timerRunning"
             >
               求解
             </button>
-            <button class="btn ghost" @click="reset" :disabled="isLoading">
+            <button
+              class="btn ghost"
+              @click="reset"
+              :disabled="isLoading || !timerRunning"
+            >
               重置
             </button>
           </div>

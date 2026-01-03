@@ -124,6 +124,10 @@ namespace sudoku
                 testSolution = solver.solve(puzzle, true);
                 givensAdded++;
             }
+
+            // Step 5: Minimize constraints while maintaining uniqueness
+            // This makes the puzzle harder for humans by removing redundant constraints
+            minimizeConstraints(puzzle, solution);
         }
 
         return puzzle;
@@ -474,6 +478,140 @@ namespace sudoku
         // A full uniqueness check would require enumeration
         auto solution = solver.solve(puzzle);
         return solution.solved;
+    }
+
+    void SudokuGenerator::minimizeConstraints(SudokuPuzzle &puzzle, const SudokuSolution &solution)
+    {
+        // Try to remove constraints one by one while maintaining uniqueness
+        // This makes the puzzle harder by having fewer hints
+
+        // First, try removing inequalities (they tend to be more redundant)
+        if (!puzzle.inequalities.empty())
+        {
+            std::vector<InequalityConstraint> originalInequalities = puzzle.inequalities;
+            std::vector<size_t> indices(originalInequalities.size());
+            for (size_t i = 0; i < indices.size(); i++)
+            {
+                indices[i] = i;
+            }
+            std::shuffle(indices.begin(), indices.end(), rng);
+
+            std::vector<bool> removed(originalInequalities.size(), false);
+
+            for (size_t idx : indices)
+            {
+                // Try removing this inequality
+                puzzle.inequalities.clear();
+                for (size_t i = 0; i < originalInequalities.size(); i++)
+                {
+                    if (!removed[i] && i != idx)
+                    {
+                        puzzle.inequalities.push_back(originalInequalities[i]);
+                    }
+                }
+
+                // Check if still unique
+                auto testSolution = solver.solve(puzzle, true);
+                if (testSolution.solved && testSolution.isUnique())
+                {
+                    // Can remove this inequality
+                    removed[idx] = true;
+                }
+                else
+                {
+                    // Must keep this inequality - restore it
+                    puzzle.inequalities.clear();
+                    for (size_t i = 0; i < originalInequalities.size(); i++)
+                    {
+                        if (!removed[i])
+                        {
+                            puzzle.inequalities.push_back(originalInequalities[i]);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Then, try removing cages (more important constraints, try fewer)
+        if (!puzzle.cages.empty())
+        {
+            std::vector<Cage> originalCages = puzzle.cages;
+            std::vector<size_t> indices(originalCages.size());
+            for (size_t i = 0; i < indices.size(); i++)
+            {
+                indices[i] = i;
+            }
+            std::shuffle(indices.begin(), indices.end(), rng);
+
+            std::vector<bool> removed(originalCages.size(), false);
+
+            for (size_t idx : indices)
+            {
+                // Try removing this cage
+                puzzle.cages.clear();
+                for (size_t i = 0; i < originalCages.size(); i++)
+                {
+                    if (!removed[i] && i != idx)
+                    {
+                        puzzle.cages.push_back(originalCages[i]);
+                    }
+                }
+
+                // Check if still unique
+                auto testSolution = solver.solve(puzzle, true);
+                if (testSolution.solved && testSolution.isUnique())
+                {
+                    // Can remove this cage
+                    removed[idx] = true;
+                }
+                else
+                {
+                    // Must keep this cage - restore it
+                    puzzle.cages.clear();
+                    for (size_t i = 0; i < originalCages.size(); i++)
+                    {
+                        if (!removed[i])
+                        {
+                            puzzle.cages.push_back(originalCages[i]);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Finally, try removing given values
+        std::vector<Cell> givenCells;
+        for (int r = 0; r < GRID_SIZE; r++)
+        {
+            for (int c = 0; c < GRID_SIZE; c++)
+            {
+                if (puzzle.grid[r][c] != EMPTY_CELL)
+                {
+                    givenCells.push_back({r, c});
+                }
+            }
+        }
+
+        if (!givenCells.empty())
+        {
+            std::shuffle(givenCells.begin(), givenCells.end(), rng);
+
+            for (const auto &cell : givenCells)
+            {
+                int originalValue = puzzle.grid[cell.row][cell.col];
+
+                // Try removing this given
+                puzzle.grid[cell.row][cell.col] = EMPTY_CELL;
+
+                // Check if still unique
+                auto testSolution = solver.solve(puzzle, true);
+                if (!testSolution.solved || !testSolution.isUnique())
+                {
+                    // Must keep this given - restore it
+                    puzzle.grid[cell.row][cell.col] = originalValue;
+                }
+            }
+        }
     }
 
     std::string SudokuGenerator::toCustomFormat(const SudokuPuzzle &puzzle)

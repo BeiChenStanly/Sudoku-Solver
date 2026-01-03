@@ -125,6 +125,9 @@ namespace sudoku
         // Check if puzzle has unique solution
         bool hasUniqueSolution(const SudokuPuzzle &puzzle);
 
+        // Minimize constraints while maintaining uniqueness
+        void minimizeConstraints(SudokuPuzzle &puzzle, const SudokuSolution &solution);
+
         // Helper: Get adjacent cells
         std::vector<Cell> getAdjacentCells(const Cell &cell);
 
