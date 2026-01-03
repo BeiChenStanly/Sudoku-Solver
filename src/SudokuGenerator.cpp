@@ -90,13 +90,13 @@ namespace sudoku
         if (config.ensureUniqueSolution)
         {
             // Check if the puzzle has a unique solution
-            auto testSolution = solver.solve(puzzle, true);  // Check uniqueness
-            
+            auto testSolution = solver.solve(puzzle, true); // Check uniqueness
+
             // Maximum attempts to achieve uniqueness through constraints
             const int kMaxConstraintAttempts = 10;
             // Maximum given values to add (failsafe to prevent infinite loop)
-            const int kMaxGivensToAdd = 81;  // Can't add more than 81 givens
-            
+            const int kMaxGivensToAdd = 81; // Can't add more than 81 givens
+
             int attempts = 0;
             while (testSolution.solved && !testSolution.isUnique() && attempts < kMaxConstraintAttempts)
             {
@@ -111,11 +111,11 @@ namespace sudoku
                     // Add given values
                     addGivens(puzzle, solution, 3);
                 }
-                
+
                 testSolution = solver.solve(puzzle, true);
                 attempts++;
             }
-            
+
             // If still not unique after max constraint attempts, add givens one at a time
             int givensAdded = 0;
             while (testSolution.solved && !testSolution.isUnique() && givensAdded < kMaxGivensToAdd)
@@ -256,8 +256,12 @@ namespace sudoku
         usedCells.insert(start);
 
         // Grow cage using BFS-like expansion
-        while (static_cast<int>(cage.size()) < targetSize)
+        int maxAttempts = 100; // 防止无限循环
+        int attempts = 0;
+        while (static_cast<int>(cage.size()) < targetSize && attempts < maxAttempts)
         {
+            attempts++;
+
             // Collect all neighbors of current cage cells
             std::vector<Cell> neighbors;
             for (const auto &cell : cage)
@@ -306,11 +310,8 @@ namespace sudoku
                 cage.push_back(next);
                 usedCells.insert(next);
             }
-            else
-            {
-                // Mark as used but don't add to cage (prevents infinite loops)
-                usedCells.insert(next);
-            }
+            // 注意：不再将重复值的单元格标记为已使用
+            // 这样它们可以被后续的笼子正确覆盖
         }
 
         return cage;
@@ -359,7 +360,7 @@ namespace sudoku
         while (usedCells.size() < GRID_SIZE * GRID_SIZE)
         {
             int targetSize = sizeDist(rng);
-            
+
             // Adjust target size if not enough cells remaining
             int remainingCells = GRID_SIZE * GRID_SIZE - static_cast<int>(usedCells.size());
             if (targetSize > remainingCells)

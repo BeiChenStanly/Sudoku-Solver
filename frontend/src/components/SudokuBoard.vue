@@ -367,6 +367,22 @@ function handleNumberClick(n: number) {
     selectedNumber.value = null;
   } else {
     selectedNumber.value = n;
+    clearSelected.value = false; // 取消清除选择
+  }
+  renderBoard();
+}
+
+// 清除键选中状态
+const clearSelected = ref(false);
+
+// 清除键点击处理
+function handleClearClick() {
+  if (clearSelected.value) {
+    clearSelected.value = false;
+    selectedNumber.value = null;
+  } else {
+    clearSelected.value = true;
+    selectedNumber.value = null; // 取消数字选择
   }
   renderBoard();
 }
@@ -409,10 +425,15 @@ function handleCanvasClick(event: MouseEvent) {
   const numPadEndX = numPadStartX + numPadBtnSize;
   if (x >= numPadStartX && x <= numPadEndX) {
     const startY = getNumPadStartY(boardSize.value);
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < numPadCount; i++) {
       const btnY = startY + i * (numPadBtnSize + numPadBtnGap);
       if (y >= btnY && y <= btnY + numPadBtnSize) {
-        handleNumberClick(i + 1);
+        if (i < 9) {
+          handleNumberClick(i + 1);
+        } else {
+          // 清除键被点击
+          handleClearClick();
+        }
         return;
       }
     }
@@ -431,6 +452,9 @@ function handleCanvasClick(event: MouseEvent) {
     // 如果有选中的数字，填入该数字
     if (selectedNumber.value !== null) {
       setCellValue(selectedNumber.value);
+    } else if (clearSelected.value) {
+      // 如果清除键被选中，清除该格子
+      setCellValue(null);
     }
   }
 }
@@ -519,11 +543,15 @@ function reset() {
 // 绘图
 const numPadWidth = 60; // 数字按钮区域宽度
 const numPadOffset = 10;
-const numPadBtnSize = 44;
-const numPadBtnGap = 6;
+const numPadBtnSize = 40;
+const numPadBtnGap = 4;
+const numPadCount = 10; // 1-9 + 清除键
 
 function getNumPadStartY(size: number) {
-  return (size - (numPadBtnSize * 9 + numPadBtnGap * 8)) / 2;
+  return (
+    (size - (numPadBtnSize * numPadCount + numPadBtnGap * (numPadCount - 1))) /
+    2
+  );
 }
 
 function resizeCanvas() {
@@ -555,9 +583,25 @@ function renderBoard() {
   const totalWidth = size + numPadWidth;
   const cellSize = size / GRID_SIZE;
 
-  // 如果计时未在流动，则不显示棋盘内容
+  // 如果计时未在流动，显示暂停遮罩
   if (!timerRunning.value) {
     ctx.clearRect(0, 0, totalWidth, size);
+
+    // 红色半透明遮罩
+    ctx.fillStyle = "rgba(220, 53, 69, 0.15)";
+    ctx.fillRect(0, 0, size, size);
+
+    // 绘制暂停图标和文字
+    ctx.fillStyle = "rgba(220, 53, 69, 0.8)";
+    ctx.font = `bold ${Math.floor(size * 0.08)}px 'Segoe UI', sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("⏸ 已暂停", size / 2, size / 2);
+
+    ctx.font = `${Math.floor(size * 0.035)}px 'Segoe UI', sans-serif`;
+    ctx.fillStyle = "rgba(220, 53, 69, 0.6)";
+    ctx.fillText("点击「继续」恢复游戏", size / 2, size / 2 + size * 0.08);
+
     return;
   }
 
@@ -644,6 +688,49 @@ function drawNumberPad(ctx: CanvasRenderingContext2D, boardSize: number) {
     ctx.textBaseline = "middle";
     ctx.fillText(String(n), x + numPadBtnSize / 2, y + numPadBtnSize / 2 + 1);
   }
+
+  // 绘制清除按钮（第10个）
+  const clearX = startX;
+  const clearY = startY + 9 * (numPadBtnSize + numPadBtnGap);
+  const isClearSelected = clearSelected.value;
+
+  ctx.beginPath();
+  ctx.arc(
+    clearX + numPadBtnSize / 2,
+    clearY + numPadBtnSize / 2,
+    numPadBtnSize / 2,
+    0,
+    Math.PI * 2
+  );
+
+  if (isClearSelected) {
+    // 选中状态 - 红色渐变
+    const gradient = ctx.createRadialGradient(
+      clearX + numPadBtnSize / 2,
+      clearY + numPadBtnSize / 2,
+      0,
+      clearX + numPadBtnSize / 2,
+      clearY + numPadBtnSize / 2,
+      numPadBtnSize / 2
+    );
+    gradient.addColorStop(0, "#ef5350");
+    gradient.addColorStop(1, "#d32f2f");
+    ctx.fillStyle = gradient;
+  } else {
+    ctx.fillStyle = "#fff";
+  }
+  ctx.fill();
+
+  ctx.strokeStyle = isClearSelected ? "#b71c1c" : "#cdd7ff";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 绘制X符号
+  ctx.fillStyle = isClearSelected ? "#fff" : "#d32f2f";
+  ctx.font = `bold ${Math.floor(numPadBtnSize * 0.5)}px 'Segoe UI', sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("✕", clearX + numPadBtnSize / 2, clearY + numPadBtnSize / 2 + 1);
 }
 
 function drawCageBackgrounds(ctx: CanvasRenderingContext2D, cellSize: number) {

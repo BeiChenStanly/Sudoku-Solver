@@ -56,15 +56,23 @@ jobs:
           cp Options.h minisat/minisat/utils/Options.h
 
       - name: Setup Emscripten
-        uses: mymindstorm/setup-emsdk@v14
-        with:
-          version: "4.0.22"
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install latest
+          ./emsdk activate latest
+          source ./emsdk_env.sh
 
       - name: Build WebAssembly
         run: |
+          cd emsdk
+          source ./emsdk_env.sh
+          cd ..
           mkdir -p build-wasm
           cd build-wasm
-          emcmake cmake .. -DCMAKE_BUILD_TYPE=Release || {
+          emcmake cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_FLAGS="-sUSE_ZLIB=1" \
+            -DCMAKE_EXE_LINKER_FLAGS="-sUSE_ZLIB=1" || {
             echo "CMake configuration failed"
             exit 1
           }
