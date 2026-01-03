@@ -534,10 +534,14 @@ function reset() {
   grid.value = puzzle.value.grid.map((row) => [...row]);
   selectedCell.value = null;
   recomputeConflicts();
-  renderBoard();
+
+  // 重置并重新启动计时器
   resetTimer();
+  startTimer();
   isVictory.value = false;
   showVictoryModal.value = false;
+
+  renderBoard();
 }
 
 // 绘图
@@ -1042,13 +1046,6 @@ function drawInequalities(ctx: CanvasRenderingContext2D, cellSize: number) {
             </button>
             <button class="btn ghost" @click="reset" :disabled="isLoading">
               重置
-            </button>
-            <button
-              class="btn ghost"
-              @click="setCellValue(null)"
-              :disabled="isLoading"
-            >
-              清除
             </button>
           </div>
 

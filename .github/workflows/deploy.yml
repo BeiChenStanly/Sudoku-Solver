@@ -70,9 +70,8 @@ jobs:
           cd ..
           mkdir -p build-wasm
           cd build-wasm
-          emcmake cmake .. -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_FLAGS="-sUSE_ZLIB=1" \
-            -DCMAKE_EXE_LINKER_FLAGS="-sUSE_ZLIB=1" || {
+          # CMakeLists.txt 已经处理了 Emscripten 的 zlib 配置
+          emcmake cmake .. -DCMAKE_BUILD_TYPE=Release || {
             echo "CMake configuration failed"
             exit 1
           }
