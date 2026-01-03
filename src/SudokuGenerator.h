@@ -52,6 +52,10 @@ namespace sudoku
 
         // Whether cages should cover all cells (for killer/mixed)
         bool fillAllCells = false;
+
+        // Difficulty level (0-100): controls constraint removal ratio
+        // 0 = easiest (keep most constraints), 100 = hardest (remove most constraints)
+        int difficulty = 50;
     };
 
     /**
@@ -125,8 +129,8 @@ namespace sudoku
         // Check if puzzle has unique solution
         bool hasUniqueSolution(const SudokuPuzzle &puzzle);
 
-        // Minimize constraints while maintaining uniqueness
-        void minimizeConstraints(SudokuPuzzle &puzzle, const SudokuSolution &solution);
+        // Minimize constraints while maintaining uniqueness, controlled by difficulty
+        void minimizeConstraints(SudokuPuzzle &puzzle, const SudokuSolution &solution, int difficulty);
 
         // Helper: Get adjacent cells
         std::vector<Cell> getAdjacentCells(const Cell &cell);

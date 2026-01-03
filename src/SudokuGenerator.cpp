@@ -126,8 +126,8 @@ namespace sudoku
             }
 
             // Step 5: Minimize constraints while maintaining uniqueness
-            // This makes the puzzle harder for humans by removing redundant constraints
-            minimizeConstraints(puzzle, solution);
+            // The difficulty parameter controls how many constraints to remove
+            minimizeConstraints(puzzle, solution, config.difficulty);
         }
 
         return puzzle;
@@ -480,15 +480,21 @@ namespace sudoku
         return solution.solved;
     }
 
-    void SudokuGenerator::minimizeConstraints(SudokuPuzzle &puzzle, const SudokuSolution &solution)
+    void SudokuGenerator::minimizeConstraints(SudokuPuzzle &puzzle, const SudokuSolution &solution, int difficulty)
     {
-        // Try to remove constraints one by one while maintaining uniqueness
-        // This makes the puzzle harder by having fewer hints
+        // Difficulty controls how many constraints to attempt to remove
+        // 0 = easiest (keep most constraints, try to remove 0%)
+        // 100 = hardest (remove as many as possible, try to remove 100%)
+        // We'll calculate a removal target based on difficulty
+        float removalRatio = static_cast<float>(difficulty) / 100.0f;
 
         // First, try removing inequalities (they tend to be more redundant)
         if (!puzzle.inequalities.empty())
         {
             std::vector<InequalityConstraint> originalInequalities = puzzle.inequalities;
+            int totalInequalities = static_cast<int>(originalInequalities.size());
+            int targetRemovals = static_cast<int>(totalInequalities * removalRatio);
+
             std::vector<size_t> indices(originalInequalities.size());
             for (size_t i = 0; i < indices.size(); i++)
             {
@@ -497,9 +503,14 @@ namespace sudoku
             std::shuffle(indices.begin(), indices.end(), rng);
 
             std::vector<bool> removed(originalInequalities.size(), false);
+            int removedCount = 0;
 
             for (size_t idx : indices)
             {
+                // Stop if we've reached our target removal count
+                if (removedCount >= targetRemovals)
+                    break;
+
                 // Try removing this inequality
                 puzzle.inequalities.clear();
                 for (size_t i = 0; i < originalInequalities.size(); i++)
@@ -516,6 +527,7 @@ namespace sudoku
                 {
                     // Can remove this inequality
                     removed[idx] = true;
+                    removedCount++;
                 }
                 else
                 {
@@ -532,10 +544,13 @@ namespace sudoku
             }
         }
 
-        // Then, try removing cages (more important constraints, try fewer)
+        // Then, try removing cages (more important constraints)
         if (!puzzle.cages.empty())
         {
             std::vector<Cage> originalCages = puzzle.cages;
+            int totalCages = static_cast<int>(originalCages.size());
+            int targetRemovals = static_cast<int>(totalCages * removalRatio);
+
             std::vector<size_t> indices(originalCages.size());
             for (size_t i = 0; i < indices.size(); i++)
             {
@@ -544,9 +559,14 @@ namespace sudoku
             std::shuffle(indices.begin(), indices.end(), rng);
 
             std::vector<bool> removed(originalCages.size(), false);
+            int removedCount = 0;
 
             for (size_t idx : indices)
             {
+                // Stop if we've reached our target removal count
+                if (removedCount >= targetRemovals)
+                    break;
+
                 // Try removing this cage
                 puzzle.cages.clear();
                 for (size_t i = 0; i < originalCages.size(); i++)
@@ -563,6 +583,7 @@ namespace sudoku
                 {
                     // Can remove this cage
                     removed[idx] = true;
+                    removedCount++;
                 }
                 else
                 {
@@ -594,10 +615,18 @@ namespace sudoku
 
         if (!givenCells.empty())
         {
+            int totalGivens = static_cast<int>(givenCells.size());
+            int targetRemovals = static_cast<int>(totalGivens * removalRatio);
+
             std::shuffle(givenCells.begin(), givenCells.end(), rng);
+            int removedCount = 0;
 
             for (const auto &cell : givenCells)
             {
+                // Stop if we've reached our target removal count
+                if (removedCount >= targetRemovals)
+                    break;
+
                 int originalValue = puzzle.grid[cell.row][cell.col];
 
                 // Try removing this given
@@ -605,7 +634,12 @@ namespace sudoku
 
                 // Check if still unique
                 auto testSolution = solver.solve(puzzle, true);
-                if (!testSolution.solved || !testSolution.isUnique())
+                if (testSolution.solved && testSolution.isUnique())
+                {
+                    // Successfully removed
+                    removedCount++;
+                }
+                else
                 {
                     // Must keep this given - restore it
                     puzzle.grid[cell.row][cell.col] = originalValue;

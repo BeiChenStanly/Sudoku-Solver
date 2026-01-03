@@ -1,52 +1,168 @@
-# Sudoku Solver & Generator using MiniSat
+# 🧩 Sudoku Solver & Generator
 
-基于 MiniSat SAT 求解器的数独求解和生成程序，支持多种数独变体。
+[![Deploy to GitHub Pages](https://github.com/BeiChenStanly/Sudoku-Solver/actions/workflows/deploy.yml/badge.svg)](https://github.com/BeiChenStanly/Sudoku-Solver/actions/workflows/deploy.yml)
+[![Tests](https://github.com/BeiChenStanly/Sudoku-Solver/actions/workflows/test.yml/badge.svg)](https://github.com/BeiChenStanly/Sudoku-Solver/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## 支持的数独类型
+基于 MiniSat SAT 求解器的数独求解和生成程序，提供 Web 应用、桌面应用和命令行工具。
 
-1. **标准数独 (Standard Sudoku)** - 经典 9x9 数独
-2. **杀手数独 (Killer Sudoku)** - 带有笼子约束，每个笼子内数字之和等于指定值且不重复
-3. **不等式数独 (Inequality Sudoku)** - 相邻格子间有大于/小于约束
-4. **混合数独 (Mixed Sudoku)** - 杀手数独和不等式数独的组合
+## ✨ 功能特点
 
-## 构建项目
+- 🎮 **多种数独类型**：标准数独、杀手数独、不等式数独、混合数独
+- ⚡ **SAT 求解器**：基于 MiniSat，快速求解任意难度谜题
+- 🎯 **智能难度系统**：5 级难度，从新手到专家
+- 📝 **笔记功能**：候选数字标记，辅助推理
+- 🎨 **现代化 UI**：响应式设计，明暗主题切换
+- ⏱️ **游戏计时**：记录解题时间，页面不可见时自动暂停
+- 🖥️ **跨平台**：Web 应用 + 桌面应用 (Windows/macOS/Linux)
+
+## 🚀 在线体验
+
+访问 [**GitHub Pages**](https://beichenstanly.github.io/Sudoku-Solver/) 立即开始游戏！
+
+## 📥 桌面应用下载
+
+在 [Releases](https://github.com/BeiChenStanly/Sudoku-Solver/releases) 页面下载适合您系统的版本：
+
+| 平台 | 格式 |
+|------|------|
+| Windows | MSI / NSIS 安装包 |
+| macOS (Intel) | DMG |
+| macOS (Apple Silicon) | DMG |
+| Linux | DEB / AppImage |
+
+## 🎮 数独类型说明
+
+### 标准数独 (Standard Sudoku)
+
+经典 9x9 数独，遵循基本规则：
+- 每行包含 1-9 各一次
+- 每列包含 1-9 各一次  
+- 每个 3x3 宫格包含 1-9 各一次
+
+### 杀手数独 (Killer Sudoku)
+
+在标准规则基础上增加笼子约束：
+- 标有数字的虚线区域称为"笼子"
+- 笼子内的数字之和必须等于标注的数值
+- 笼子内的数字不能重复
+
+### 不等式数独 (Inequality Sudoku)
+
+在标准规则基础上增加大小约束：
+- 相邻单元格之间有 `<` 或 `>` 符号
+- 符号指示两个格子的大小关系
+
+### 混合数独 (Mixed Sudoku)
+
+结合杀手数独和不等式数独的所有规则，是最具挑战性的变体。
+
+## 🎯 难度系统
+
+| 难度等级 | 约束移除比例 | 适合人群 |
+|---------|------------|---------|
+| 新手 (Beginner) | 45% | 初学者 |
+| 简单 (Easy) | 55% | 休闲玩家 |
+| 中等 (Medium) | 65% | 有经验玩家 |
+| 困难 (Hard) | 75% | 高手 |
+| 专家 (Expert) | 85% | 挑战极限 |
+
+难度越高，移除的约束越多，需要更多的逻辑推理。
+
+## 📝 游戏操作
+
+### 基本操作
+
+- **选择单元格**：点击棋盘上的格子
+- **填入数字**：点击数字键盘或按键盘 1-9
+- **清除数字**：点击删除按钮或按 Delete/Backspace/0
+- **方向键**：使用箭头键移动选择
+
+### 笔记功能
+
+1. 点击"笔记关闭"按钮开启笔记模式
+2. 在笔记模式下点击数字，会在当前格子标记/取消候选数字
+3. 填入正式数字时会自动清除相关笔记
+
+### 快捷键
+
+| 按键 | 功能 |
+|------|------|
+| `1-9` | 填入数字 |
+| `0` / `Delete` / `Backspace` | 清除单元格 |
+| `↑↓←→` | 移动选择 |
+
+## 🛠️ 本地开发
 
 ### 前置条件
 
-- CMake 3.14 或更高版本
-- C++17 兼容的编译器 (MSVC, GCC, Clang)
-- (可选) ZLIB 用于 MiniSat 的某些功能
+- [Node.js](https://nodejs.org/) 18+
+- [CMake](https://cmake.org/) 3.14+
+- [Emscripten](https://emscripten.org/) (用于 WASM 构建)
+- C++17 兼容编译器
 
-### 构建步骤
+### 安装依赖
 
 ```bash
-# 创建构建目录
-mkdir build
-cd build
+# 克隆仓库
+git clone https://github.com/BeiChenStanly/Sudoku-Solver.git
+cd Sudoku-Solver
 
-# 配置项目
-cmake ..
-
-# 构建
-cmake --build . --config Release
-
-# 运行测试
-ctest -C Release --output-on-failure
+# 安装 Emscripten (如果尚未安装)
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+./emsdk install latest
+./emsdk activate latest
+source ./emsdk_env.sh
+cd ..
 ```
 
-### Windows (Visual Studio)
+### 构建 WebAssembly
 
-```powershell
-mkdir build
-cd build
-cmake .. -G "Visual Studio 17 2022"
-cmake --build . --config Release
-ctest -C Release --output-on-failure
+```bash
+# 确保 MiniSat 已设置
+cp System.cc minisat/minisat/utils/System.cc
+cp SolverTypes.h minisat/minisat/core/SolverTypes.h
+cp Options.h minisat/minisat/utils/Options.h
+
+# 构建 WASM
+mkdir -p build-wasm && cd build-wasm
+emcmake cmake .. -DCMAKE_BUILD_TYPE=Release
+emmake cmake --build . --config Release
+cd ..
+
+# 复制 WASM 文件到前端
+mkdir -p frontend/public/wasm
+cp build-wasm/sudoku_wasm.js frontend/public/wasm/
+cp build-wasm/sudoku_wasm.wasm frontend/public/wasm/
 ```
 
-## 使用方法
+### 运行开发服务器
 
-### 命令行求解
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+访问 http://localhost:1420 查看应用。
+
+### 构建桌面应用 (Tauri)
+
+```bash
+# 安装 Rust (如果尚未安装)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# 构建桌面应用
+cd frontend
+npm run tauri build
+```
+
+构建产物位于 `frontend/src-tauri/target/release/bundle/`。
+
+## 📦 命令行工具
+
+### 求解谜题
 
 ```bash
 # 从文件求解
@@ -54,12 +170,9 @@ ctest -C Release --output-on-failure
 
 # 从字符串求解 (81字符)
 ./sudoku_solve --string "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
-
-# 显示帮助
-./sudoku_solve --help
 ```
 
-### 命令行生成
+### 生成谜题
 
 ```bash
 # 生成混合数独（默认）
@@ -69,39 +182,29 @@ ctest -C Release --output-on-failure
 ./sudoku_solve --generate --type killer
 ./sudoku_solve --generate --type inequality
 ./sudoku_solve --generate --type mixed
-./sudoku_solve --generate --type standard
 
 # 自定义参数
-./sudoku_solve --generate --type mixed --cages 10 15 --ineq 10 15
+./sudoku_solve --generate --type mixed --cages 10 15 --ineq 10 15 --seed 42
 
-# 设置随机种子（可重现）
-./sudoku_solve --generate --seed 12345
-
-# 输出到文件
-./sudoku_solve --generate --output puzzle.txt
-
-# 同时输出解答
-./sudoku_solve --generate --with-solution
-
-# 完整示例
-./sudoku_solve --generate --type mixed --cages 12 18 --ineq 10 15 --seed 42 --with-solution --output puzzle.txt
+# 输出到文件并包含解答
+./sudoku_solve --generate --output puzzle.txt --with-solution
 ```
 
 ### 生成选项
 
-| 选项                   | 说明                                          | 默认值 |
-| ---------------------- | --------------------------------------------- | ------ |
-| `--type <TYPE>`        | 谜题类型: standard, killer, inequality, mixed | mixed  |
-| `--cages <MIN> <MAX>`  | 笼子数量范围                                  | 10 20  |
-| `--ineq <MIN> <MAX>`   | 不等式数量范围                                | 10 20  |
-| `--givens <MIN> <MAX>` | 给定值数量范围                                | 0 10   |
-| `--seed <N>`           | 随机种子（用于重现）                          | 随机   |
-| `--output <FILE>`      | 输出文件（默认输出到标准输出）                | stdout |
-| `--with-solution`      | 包含解答                                      | 否     |
+| 选项 | 说明 | 默认值 |
+|------|------|--------|
+| `--type <TYPE>` | 谜题类型: standard, killer, inequality, mixed | mixed |
+| `--cages <MIN> <MAX>` | 笼子数量范围 | 10 20 |
+| `--ineq <MIN> <MAX>` | 不等式数量范围 | 10 20 |
+| `--givens <MIN> <MAX>` | 给定值数量范围 | 0 10 |
+| `--seed <N>` | 随机种子（用于重现） | 随机 |
+| `--output <FILE>` | 输出文件 | stdout |
+| `--with-solution` | 包含解答 | 否 |
 
-### 输入格式
+## 📁 输入格式
 
-#### 1. 简单格式 (标准数独)
+### 简单格式 (标准数独)
 
 81 个字符，使用 `.` 或 `0` 表示空格：
 
@@ -109,33 +212,13 @@ ctest -C Release --output-on-failure
 530070000600195000098000060800060003400803001700020006060000280000419005000080079
 ```
 
-或者 9 行格式：
-
-```
-5 3 . . 7 . . . .
-6 . . 1 9 5 . . .
-. 9 8 . . . . 6 .
-8 . . . 6 . . . 3
-4 . . 8 . 3 . . 1
-7 . . . 2 . . . 6
-. 6 . . . . 2 8 .
-. . . 4 1 9 . . 5
-. . . . 8 . . 7 9
-```
-
-#### 2. 自定义格式 (支持所有类型)
+### 自定义格式 (支持所有类型)
 
 ```
 GRID
 0 0 0 0 0 0 0 0 0
 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0
+...
 
 CAGES
 10 0 0 0 1
@@ -146,119 +229,58 @@ INEQUALITIES
 0 1 < 0 2
 ```
 
-- `CAGES` 部分：`sum r1 c1 r2 c2 ...` (目标和 + 单元格坐标对)
-- `INEQUALITIES` 部分：`r1 c1 > r2 c2` 或 `r1 c1 < r2 c2`
-- 坐标从 0 开始
-
-## 编程接口
-
-```cpp
-#include "SudokuSolver.h"
-#include "SudokuParser.h"
-#include "SudokuGenerator.h"
-
-using namespace sudoku;
-
-// ========== 求解谜题 ==========
-
-// 创建求解器
-SudokuSolver solver;
-
-// 从字符串解析谜题
-SudokuPuzzle puzzle = SudokuParser::parseFromString(puzzleString);
-
-// 或者手动创建谜题
-SudokuPuzzle puzzle;
-puzzle.setCell(0, 0, 5);  // 设置给定值
-puzzle.addCage(Cage({{0, 1}, {0, 2}}, 10));  // 添加笼子
-puzzle.addInequality(InequalityConstraint(
-    Cell(0, 0), Cell(0, 1), InequalityType::GREATER_THAN));
-
-// 求解
-SudokuSolution solution = solver.solve(puzzle);
-
-if (solution.solved) {
-    // 使用 solution.grid[row][col] 获取结果
-    std::cout << SudokuParser::toString(solution);
-}
-
-// 验证解答
-bool valid = SudokuSolver::verifySolution(puzzle, solution);
-
-// ========== 生成谜题 ==========
-
-// 创建生成器
-SudokuGenerator generator;
-
-// 配置生成参数
-GeneratorConfig config;
-config.type = SudokuType::KILLER_INEQUALITY;  // 混合数独
-config.minCages = 10;
-config.maxCages = 15;
-config.minInequalities = 10;
-config.maxInequalities = 15;
-config.seed = 12345;  // 可选：设置随机种子
-
-// 生成谜题和解答
-SudokuSolution solution;
-SudokuPuzzle puzzle = generator.generateWithSolution(config, solution);
-
-// 输出为自定义格式
-std::string output = generator.toCustomFormat(puzzle);
-std::string outputWithSolution = generator.toCustomFormatWithSolution(puzzle, solution);
-```
-
-## 项目结构
+## 🏗️ 项目结构
 
 ```
-Sudoku Solver/
-├── CMakeLists.txt             # 主构建配置
-├── README.md                  # 本文件
-├── src/
-│   ├── SudokuTypes.h          # 数据类型定义
-│   ├── SudokuSolver.h/cpp     # 高层求解接口
-│   ├── SudokuEncoder.h/cpp    # SAT 编码器
-│   ├── SudokuParser.h/cpp     # 输入解析器
-│   ├── SudokuGenerator.h/cpp  # 谜题生成器
-│   └── main.cpp               # 命令行入口
-├── tests/
-│   ├── test_main.cpp
-│   ├── test_standard_sudoku.cpp
-│   ├── test_killer_sudoku.cpp
-│   ├── test_inequality_sudoku.cpp
-│   ├── test_mixed_sudoku.cpp
-│   └── test_generator.cpp
-├── examples/
-│   ├── standard_easy.txt
-│   ├── standard_hard.txt
-│   ├── killer_sudoku.txt
-│   ├── inequality_sudoku.txt
-│   └── mixed_sudoku.txt
-└── minisat/                   # MiniSat SAT 求解器
+Sudoku-Solver/
+├── src/                    # C++ 核心求解器
+│   ├── SudokuSolver.*      # 求解接口
+│   ├── SudokuEncoder.*     # SAT 编码器
+│   ├── SudokuParser.*      # 输入解析器
+│   ├── SudokuGenerator.*   # 谜题生成器
+│   └── wasm_bindings.cpp   # WebAssembly 绑定
+├── frontend/               # Vue 3 前端
+│   ├── src/
+│   │   ├── components/     # UI 组件
+│   │   ├── composables/    # 组合式函数
+│   │   ├── services/       # WASM 服务
+│   │   └── types/          # TypeScript 类型
+│   └── src-tauri/          # Tauri 桌面应用配置
+├── minisat/                # MiniSat SAT 求解器
+├── tests/                  # C++ 测试
+├── examples/               # 示例谜题
+└── .github/workflows/      # CI/CD 配置
 ```
 
-## SAT 编码说明
+## 🔬 技术实现
 
-### 变量定义
+### SAT 编码
 
-对于每个单元格 (r, c) 和每个可能的值 v (1-9)，定义布尔变量 x(r,c,v)，表示"单元格 (r,c) 的值为 v"。
+使用布尔可满足性问题 (SAT) 对数独进行编码：
 
-### 基本约束
+- **变量**：对于每个单元格 (r, c) 和值 v，定义变量 x(r,c,v)
+- **基本约束**：每格恰好一个值，行/列/宫格唯一性
+- **杀手约束**：枚举有效数字组合，编码笼子和与唯一性
+- **不等式约束**：禁止违反大小关系的值对
 
-1. **每个单元格恰好一个值**：对于每个 (r,c)，恰好一个 x(r,c,v) 为真
-2. **行约束**：每行每个数字恰好出现一次
-3. **列约束**：每列每个数字恰好出现一次
-4. **宫格约束**：每个 3x3 宫格每个数字恰好出现一次
+### 前端架构
 
-### 杀手数独约束
+- **Vue 3** + **Composition API**：响应式状态管理
+- **Canvas 渲染**：高性能棋盘绘制
+- **Web Worker**：后台运行 WASM 求解器，保持 UI 流畅
+- **Tauri 2.0**：构建轻量级跨平台桌面应用
 
-1. **笼子唯一性**：笼子内每个数字最多出现一次
-2. **笼子和**：笼子内数字之和等于目标值（通过枚举有效组合编码）
+## 🤝 贡献
 
-### 不等式约束
+欢迎提交 Issue 和 Pull Request！请查看 [CONTRIBUTING.md](CONTRIBUTING.md) 了解贡献指南。
 
-对于 cell1 > cell2：禁止所有 (v1, v2) 使得 v1 ≤ v2
+## 📄 许可证
 
-## 许可证
+本项目使用 [MIT 许可证](LICENSE)。MiniSat 使用其原始许可证。
 
-本项目使用 MIT 许可证。MiniSat 使用其原始许可证。
+## 🙏 致谢
+
+- [MiniSat](http://minisat.se/) - 高效的 SAT 求解器
+- [Vue.js](https://vuejs.org/) - 渐进式 JavaScript 框架
+- [Tauri](https://tauri.app/) - 构建桌面应用的工具包
+- [Emscripten](https://emscripten.org/) - C++ 到 WebAssembly 编译器

@@ -100,6 +100,8 @@ std::string solvePuzzle(const std::string &input, bool checkUniqueness)
  * @param includeSolution Whether to include solution in output
  * @param fillAllCells Whether cages should fill all cells
  * @param ensureUniqueSolution Whether to ensure unique solution
+ * @param difficulty Difficulty percentage (0-100): controls constraint removal ratio
+ *                   0 = easiest (keep most constraints), 100 = hardest (remove most constraints)
  * @return Puzzle in custom format string
  */
 std::string generatePuzzle(
@@ -111,7 +113,8 @@ std::string generatePuzzle(
     unsigned int seed,
     bool includeSolution,
     bool fillAllCells,
-    bool ensureUniqueSolution)
+    bool ensureUniqueSolution,
+    int difficulty)
 {
     GeneratorConfig config;
 
@@ -133,6 +136,7 @@ std::string generatePuzzle(
         config.type = SudokuType::KILLER_INEQUALITY;
     }
 
+    // Use the provided constraint counts directly (not scaled by difficulty)
     config.minCages = minCages;
     config.maxCages = maxCages;
     config.minInequalities = minInequalities;
@@ -141,13 +145,19 @@ std::string generatePuzzle(
     config.ensureUniqueSolution = ensureUniqueSolution;
     config.fillAllCells = fillAllCells;
 
+    // Set difficulty for constraint removal ratio
+    config.difficulty = std::max(0, std::min(100, difficulty));
+
     // Adjust for type
     if (config.type == SudokuType::STANDARD)
     {
         config.minCages = config.maxCages = 0;
         config.minInequalities = config.maxInequalities = 0;
-        config.minGivens = 25;
-        config.maxGivens = 35;
+        // Difficulty affects givens for standard sudoku
+        // Easy: 35-40 givens, Hard: 17-25 givens
+        int baseGivens = 40 - static_cast<int>(20 * (static_cast<float>(difficulty) / 100.0f));
+        config.minGivens = std::max(17, baseGivens - 5); // 17 is minimum for unique solution
+        config.maxGivens = baseGivens;
     }
     else if (config.type == SudokuType::KILLER)
     {

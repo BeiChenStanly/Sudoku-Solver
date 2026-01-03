@@ -1,0 +1,228 @@
+name: Release Desktop App
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        type: string
+      draft:
+        description: 'Create as draft release'
+        required: false
+        type: boolean
+        default: true
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-wasm:
+    name: Build WebAssembly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Build Tools
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "4.1.0"
+
+      - name: Setup MiniSat
+        run: |
+          if [ ! -d "minisat" ]; then
+            git clone --depth 1 https://github.com/niklasso/minisat.git minisat
+          fi
+          cp System.cc minisat/minisat/utils/System.cc
+          cp SolverTypes.h minisat/minisat/core/SolverTypes.h
+          cp Options.h minisat/minisat/utils/Options.h
+
+      - name: Setup Emscripten
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install latest
+          ./emsdk activate latest
+
+      - name: Build WebAssembly
+        run: |
+          cd emsdk && source ./emsdk_env.sh && cd ..
+          mkdir -p build-wasm
+          cd build-wasm
+          emcmake cmake .. -DCMAKE_BUILD_TYPE=Release
+          emmake cmake --build . --config Release
+
+      - name: Upload WASM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-artifacts
+          path: |
+            build-wasm/sudoku_wasm.js
+            build-wasm/sudoku_wasm.wasm
+
+  build-tauri:
+    name: Build ${{ matrix.platform.name }}
+    needs: build-wasm
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - name: Linux
+            os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            bundles: deb,appimage
+          - name: Windows
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bundles: msi,nsis
+          - name: macOS (Intel)
+            os: macos-13
+            target: x86_64-apple-darwin
+            bundles: dmg
+          - name: macOS (Apple Silicon)
+            os: macos-14
+            target: aarch64-apple-darwin
+            bundles: dmg
+
+    runs-on: ${{ matrix.platform.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download WASM artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm-artifacts
+          path: build-wasm
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: ${{ matrix.platform.target }}
+
+      - name: Install dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Copy WASM files
+        shell: bash
+        run: |
+          mkdir -p frontend/public/wasm
+          cp build-wasm/sudoku_wasm.js frontend/public/wasm/
+          cp build-wasm/sudoku_wasm.wasm frontend/public/wasm/
+
+      - name: Update version in tauri.conf.json
+        shell: bash
+        run: |
+          cd frontend/src-tauri
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            sed -i 's/"version": "[^"]*"/"version": "${{ inputs.version }}"/' tauri.conf.json
+          else
+            sed -i '' 's/"version": "[^"]*"/"version": "${{ inputs.version }}"/' tauri.conf.json 2>/dev/null || \
+            sed -i 's/"version": "[^"]*"/"version": "${{ inputs.version }}"/' tauri.conf.json
+          fi
+
+      - name: Build Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: frontend
+          tauriScript: npx tauri
+          args: --target ${{ matrix.platform.target }} --bundles ${{ matrix.platform.bundles }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-${{ matrix.platform.target }}
+          path: |
+            frontend/src-tauri/target/${{ matrix.platform.target }}/release/bundle/**/*.deb
+            frontend/src-tauri/target/${{ matrix.platform.target }}/release/bundle/**/*.AppImage
+            frontend/src-tauri/target/${{ matrix.platform.target }}/release/bundle/**/*.msi
+            frontend/src-tauri/target/${{ matrix.platform.target }}/release/bundle/**/*.exe
+            frontend/src-tauri/target/${{ matrix.platform.target }}/release/bundle/**/*.dmg
+
+  create-release:
+    name: Create Release
+    needs: build-tauri
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+          
+          # 查找并复制所有构建产物
+          find artifacts -type f \( -name "*.deb" -o -name "*.AppImage" -o -name "*.msi" -o -name "*.exe" -o -name "*.dmg" \) | while read file; do
+            # 获取文件名并添加版本和平台信息
+            filename=$(basename "$file")
+            # 复制到 release-assets 目录
+            cp "$file" "release-assets/$filename"
+          done
+          
+          # 显示所有要发布的文件
+          echo "Release assets:"
+          ls -la release-assets/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: Sudoku Solver v${{ inputs.version }}
+          draft: ${{ inputs.draft }}
+          prerelease: ${{ inputs.prerelease }}
+          files: release-assets/*
+          body: |
+            ## Sudoku Solver v${{ inputs.version }}
+            
+            ### 下载
+            
+            | 平台 | 下载 |
+            |------|------|
+            | Windows (MSI 安装包) | `Sudoku Solver_${{ inputs.version }}_x64-setup.msi` |
+            | Windows (NSIS 安装包) | `Sudoku Solver_${{ inputs.version }}_x64-setup.exe` |
+            | macOS (Intel) | `Sudoku Solver_${{ inputs.version }}_x64.dmg` |
+            | macOS (Apple Silicon) | `Sudoku Solver_${{ inputs.version }}_aarch64.dmg` |
+            | Linux (Debian/Ubuntu) | `sudoku-solver_${{ inputs.version }}_amd64.deb` |
+            | Linux (AppImage) | `sudoku-solver_${{ inputs.version }}_amd64.AppImage` |
+            
+            ### 在线试玩
+            
+            访问 [GitHub Pages](https://beichenstanly.github.io/Sudoku-Solver/) 在线体验。
+            
+            ---
+            
+            > 如有问题，请在 [Issues](https://github.com/BeiChenStanly/Sudoku-Solver/issues) 中反馈。

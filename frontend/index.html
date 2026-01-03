@@ -4,8 +4,32 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/Sudoku.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sudoku Solver</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#6366f1" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#818cf8" media="(prefers-color-scheme: dark)" />
+  <meta name="description" content="高性能数独求解器和生成器，支持标准数独、杀手数独、不等式数独" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+    rel="stylesheet" />
+  <title>数独求解器</title>
+  <style>
+    /* 防止 FOUC */
+    html {
+      background: #faf9f7;
+    }
+
+    [data-theme="dark"] {
+      background: #0f0f14;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      html[data-theme="auto"] {
+        background: #0f0f14;
+      }
+    }
+  </style>
 </head>
 
 <body>

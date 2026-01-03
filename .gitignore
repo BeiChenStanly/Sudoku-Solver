@@ -5,3 +5,4 @@ _codeql_detected_source_root
 generated_puzzle.txt
 build-wasm
 .vscode
+emsdk

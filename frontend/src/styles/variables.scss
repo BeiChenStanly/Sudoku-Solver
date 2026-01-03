@@ -1,0 +1,177 @@
+// ===================================
+// 数独游戏主题变量
+// ===================================
+
+// 颜色调色板
+:root {
+    // 品牌色
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --primary-light: #a5b4fc;
+    --primary-rgb: 99, 102, 241;
+    --accent: #f59e0b;
+    --accent-hover: #d97706;
+    --accent-rgb: 245, 158, 11;
+
+    // 语义色
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --info: #3b82f6;
+
+    // 背景色
+    --bg-primary: #faf9f7;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f3f4f6;
+    --bg-elevated: #ffffff;
+
+    // 文字色
+    --text-primary: #1f2937;
+    --text-secondary: #4b5563;
+    --text-tertiary: #9ca3af;
+    --text-inverse: #ffffff;
+
+    // 边框色
+    --border-light: #e5e7eb;
+    --border-medium: #d1d5db;
+    --border-dark: #1f2937;
+
+    // 数独棋盘专用色
+    --board-bg: #fffef9;
+    --board-line: #cbd5e1;
+    --board-line-bold: #334155;
+    --cell-selected: rgba(99, 102, 241, 0.25);
+    --cell-highlight: rgba(245, 158, 11, 0.2);
+    --cell-conflict: rgba(239, 68, 68, 0.2);
+    --cell-given: #1e293b;
+    --cell-user: #6366f1;
+    --cell-error: #dc2626;
+
+    // 笼子颜色
+    --cage-1: rgba(254, 202, 202, 0.5);
+    --cage-2: rgba(191, 219, 254, 0.5);
+    --cage-3: rgba(187, 247, 208, 0.5);
+    --cage-4: rgba(254, 240, 138, 0.5);
+    --cage-5: rgba(221, 214, 254, 0.5);
+    --cage-6: rgba(165, 243, 252, 0.5);
+    --cage-7: rgba(252, 211, 229, 0.5);
+    --cage-8: rgba(217, 249, 157, 0.5);
+
+    // 阴影
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+    // 圆角
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+
+    // 动画
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    --transition-slow: 0.4s ease;
+}
+
+// 深色模式
+[data-theme="dark"] {
+    --primary: #818cf8;
+    --primary-hover: #a5b4fc;
+    --primary-light: #4338ca;
+    --primary-rgb: 129, 140, 248;
+    --accent: #fbbf24;
+    --accent-hover: #fcd34d;
+    --accent-rgb: 251, 191, 36;
+
+    --bg-primary: #0f0f14;
+    --bg-secondary: #1a1a24;
+    --bg-tertiary: #252532;
+    --bg-elevated: #1e1e2a;
+
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #64748b;
+    --text-inverse: #0f172a;
+
+    --border-light: #2d2d3a;
+    --border-medium: #3d3d4d;
+    --border-dark: #e2e8f0;
+
+    --board-bg: #1a1a26;
+    --board-line: #3d3d4d;
+    --board-line-bold: #e2e8f0;
+    --cell-selected: rgba(129, 140, 248, 0.3);
+    --cell-highlight: rgba(251, 191, 36, 0.25);
+    --cell-conflict: rgba(239, 68, 68, 0.25);
+    --cell-given: #f1f5f9;
+    --cell-user: #a5b4fc;
+    --cell-error: #f87171;
+
+    --cage-1: rgba(220, 38, 38, 0.25);
+    --cage-2: rgba(37, 99, 235, 0.25);
+    --cage-3: rgba(22, 163, 74, 0.25);
+    --cage-4: rgba(234, 179, 8, 0.25);
+    --cage-5: rgba(147, 51, 234, 0.25);
+    --cage-6: rgba(6, 182, 212, 0.25);
+    --cage-7: rgba(219, 39, 119, 0.25);
+    --cage-8: rgba(132, 204, 22, 0.25);
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+}
+
+// 自动深色模式（当用户设置为 auto 时）
+@media (prefers-color-scheme: dark) {
+    [data-theme="auto"] {
+        --primary: #818cf8;
+        --primary-hover: #a5b4fc;
+        --primary-light: #4338ca;
+        --primary-rgb: 129, 140, 248;
+        --accent: #fbbf24;
+        --accent-hover: #fcd34d;
+        --accent-rgb: 251, 191, 36;
+
+        --bg-primary: #0f0f14;
+        --bg-secondary: #1a1a24;
+        --bg-tertiary: #252532;
+        --bg-elevated: #1e1e2a;
+
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-tertiary: #64748b;
+        --text-inverse: #0f172a;
+
+        --border-light: #2d2d3a;
+        --border-medium: #3d3d4d;
+        --border-dark: #e2e8f0;
+
+        --board-bg: #1a1a26;
+        --board-line: #3d3d4d;
+        --board-line-bold: #e2e8f0;
+        --cell-selected: rgba(129, 140, 248, 0.3);
+        --cell-highlight: rgba(251, 191, 36, 0.25);
+        --cell-conflict: rgba(239, 68, 68, 0.25);
+        --cell-given: #f1f5f9;
+        --cell-user: #a5b4fc;
+        --cell-error: #f87171;
+
+        --cage-1: rgba(220, 38, 38, 0.25);
+        --cage-2: rgba(37, 99, 235, 0.25);
+        --cage-3: rgba(22, 163, 74, 0.25);
+        --cage-4: rgba(234, 179, 8, 0.25);
+        --cage-5: rgba(147, 51, 234, 0.25);
+        --cage-6: rgba(6, 182, 212, 0.25);
+        --cage-7: rgba(219, 39, 119, 0.25);
+        --cage-8: rgba(132, 204, 22, 0.25);
+
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+    }
+}
