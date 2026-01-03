@@ -22,6 +22,19 @@ jobs:
       - name: Create build directory
         run: mkdir -p build
 
+      - name: Setup MiniSat
+        run: |
+          if [ ! -d "minisat" ]; then
+            echo "Cloning MiniSat..."
+            git clone --depth 1 https://github.com/niklasso/minisat.git minisat || {
+              echo "Failed to clone MiniSat"
+              exit 1
+            }
+          fi
+          cp System.cc minisat/minisat/utils/System.cc
+          cp SolverTypes.h minisat/minisat/core/SolverTypes.h
+          cp Options.h minisat/minisat/utils/Options.h
+
       - name: Configure CMake
         working-directory: ./build
         run: cmake .. -DCMAKE_BUILD_TYPE=Release
