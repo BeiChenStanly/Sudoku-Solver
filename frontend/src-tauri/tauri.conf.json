@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Sudoku Solver",
-  "version": "1.0.0",
-  "identifier": "com.sudoku.solver",
+  "productName": "sudoku-app",
+  "version": "0.1.0",
+  "identifier": "com.zheng.sudoku-app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,15 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "数独求解器",
-        "width": 1100,
-        "height": 750,
-        "minWidth": 800,
-        "minHeight": 600,
-        "resizable": true,
-        "center": true,
-        "decorations": true,
-        "transparent": false
+        "title": "sudoku-app",
+        "width": 800,
+        "height": 600
       }
     ],
     "security": {
@@ -36,19 +30,6 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ],
-    "windows": {
-      "webviewInstallMode": {
-        "type": "embedBootstrapper"
-      }
-    },
-    "linux": {
-      "deb": {
-        "depends": []
-      }
-    },
-    "macOS": {
-      "minimumSystemVersion": "10.15"
-    }
+    ]
   }
 }

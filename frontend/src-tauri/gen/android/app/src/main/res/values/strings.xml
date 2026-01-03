@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">sudoku-app</string>
+    <string name="main_activity_title">sudoku-app</string>
+</resources>

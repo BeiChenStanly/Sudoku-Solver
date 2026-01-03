@@ -4,16 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., 1.0.0)'
+        description: "Release version (e.g., 1.0.0)"
         required: true
         type: string
       draft:
-        description: 'Create as draft release'
+        description: "Create as draft release"
         required: false
         type: boolean
         default: true
       prerelease:
-        description: 'Mark as pre-release'
+        description: "Mark as pre-release"
         required: false
         type: boolean
         default: false
@@ -179,7 +179,7 @@ jobs:
       - name: Prepare release assets
         run: |
           mkdir -p release-assets
-          
+
           # 查找并复制所有构建产物
           find artifacts -type f \( -name "*.deb" -o -name "*.AppImage" -o -name "*.msi" -o -name "*.exe" -o -name "*.dmg" \) | while read file; do
             # 获取文件名并添加版本和平台信息
@@ -187,7 +187,7 @@ jobs:
             # 复制到 release-assets 目录
             cp "$file" "release-assets/$filename"
           done
-          
+
           # 显示所有要发布的文件
           echo "Release assets:"
           ls -la release-assets/
@@ -202,22 +202,21 @@ jobs:
           files: release-assets/*
           body: |
             ## Sudoku Solver v${{ inputs.version }}
-            
+
             ### 下载
-            
+
             | 平台 | 下载 |
             |------|------|
             | Windows (MSI 安装包) | `Sudoku Solver_${{ inputs.version }}_x64-setup.msi` |
             | Windows (NSIS 安装包) | `Sudoku Solver_${{ inputs.version }}_x64-setup.exe` |
-            | macOS (Intel) | `Sudoku Solver_${{ inputs.version }}_x64.dmg` |
             | macOS (Apple Silicon) | `Sudoku Solver_${{ inputs.version }}_aarch64.dmg` |
             | Linux (Debian/Ubuntu) | `sudoku-solver_${{ inputs.version }}_amd64.deb` |
             | Linux (AppImage) | `sudoku-solver_${{ inputs.version }}_amd64.AppImage` |
-            
+
             ### 在线试玩
-            
+
             访问 [GitHub Pages](https://beichenstanly.github.io/Sudoku-Solver/) 在线体验。
-            
+
             ---
-            
+
             > 如有问题，请在 [Issues](https://github.com/BeiChenStanly/Sudoku-Solver/issues) 中反馈。
