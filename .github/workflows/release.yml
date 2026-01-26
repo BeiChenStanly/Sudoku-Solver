@@ -229,12 +229,14 @@ jobs:
 
             | 平台 | 下载 |
             |------|------|
-            | Windows (MSI 安装包) | `Sudoku Solver_${{ inputs.version }}_x64-setup.msi` |
-            | Windows (NSIS 安装包) | `Sudoku Solver_${{ inputs.version }}_x64-setup.exe` |
-            | macOS (Apple Silicon) | `Sudoku Solver_${{ inputs.version }}_aarch64.dmg` |
-            | macOS (Intel) | `Sudoku Solver_${{ inputs.version }}_x86_64.dmg` |
-            | Linux (Debian/Ubuntu) | `sudoku-solver_${{ inputs.version }}_amd64.deb` |
-            | Linux (AppImage) | `sudoku-solver_${{ inputs.version }}_amd64.AppImage` |
+            | Windows (MSI 安装包) | `sudoku-app_${{ inputs.version }}_x64_en-US.msi` |
+            | Windows (NSIS 安装包) | `sudoku-app_${{ inputs.version }}_x64-setup.exe` |
+            | macOS (Apple Silicon) | `sudoku-app_${{ inputs.version }}_aarch64.dmg` |
+            | macOS (Intel) | `sudoku-app_${{ inputs.version }}_x64.dmg` |
+            | Linux (Debian/Ubuntu) | `sudoku-app_${{ inputs.version }}_amd64.deb` |
+            | Linux (AppImage) | `sudoku-app_${{ inputs.version }}_amd64.AppImage` |
+            | Android(Apk) | `app-universal-release.apk` |
+
 
             ### 在线试玩
 
